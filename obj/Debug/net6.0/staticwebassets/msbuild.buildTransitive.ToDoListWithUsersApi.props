@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\ToDoListWithUsersApi.props" />
+</Project>
