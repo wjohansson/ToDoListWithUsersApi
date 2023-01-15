@@ -1,4 +1,6 @@
-﻿namespace ToDoListWithUsersApi.Services
+﻿using Task = ToDoListWithUsersApi.Models.Task;
+
+namespace ToDoListWithUsersApi.Services
 {
     public interface ITaskListService
     {
@@ -6,12 +8,19 @@
 
         List<TaskList> GetCurrentUserLists(Guid userId);
 
-        TaskList GetSingleList(Guid id);
+        List<TaskList> GetCurrentCategoryLists(Guid categoryId);
 
-        TaskList CreateList(Guid userId, string title, Guid categoryId);
+        TaskList GetList(Guid listId);
 
-        TaskList UpdateList(Guid id, string? title, Guid categoryId);
+        TaskList CreateList(Guid userId, string title, Guid? categoryId);
 
-        string DeleteList(Guid id);
+        TaskList EditList(Guid listId, string? title, Guid? categoryId);
+
+        string DeleteList(Guid listId);
+
+        string UpdateSort(Guid listId, SortTasks sortBy);
+
+        List<TaskList> SortBy();
+
     }
 }

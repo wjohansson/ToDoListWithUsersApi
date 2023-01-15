@@ -60,6 +60,7 @@ builder.Services.AddAuthentication("Bearer")
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITaskListService, TaskListService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<ISubTaskService, SubTaskService>();

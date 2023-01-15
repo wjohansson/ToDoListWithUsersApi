@@ -40,7 +40,7 @@ namespace ToDoListWithUsersApi.Security
             {
                 userId = Guid.Parse(CurrentRecord.Record["UserId"]);
             }
-            catch (FormatException)
+            catch (Exception)
             {
                 return AuthenticateResult.Fail("Not logged in");
             }

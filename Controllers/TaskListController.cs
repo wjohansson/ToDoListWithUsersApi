@@ -18,13 +18,13 @@ namespace ToDoListWithUsersApi.Controllers
             _taskListService = service;
         }
 
-        [HttpGet("GetAllLists")]
+        [HttpGet("AllLists")]
         public IActionResult GetLists()
         {
             return Ok(_taskListService.GetAllLists());
         }
 
-        [HttpGet("GetCurrentUserLists")]
+        [HttpGet("YourLists")]
         public IActionResult GetCurrentUserLists()
         {
             Guid userId;
@@ -41,14 +41,31 @@ namespace ToDoListWithUsersApi.Controllers
             return Ok(_taskListService.GetCurrentUserLists(userId));
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetSingleList(Guid id)
+        [HttpGet("ThisCategoryLists")]
+        public IActionResult GetCurrentCategoryLists()
         {
-            return Ok(_taskListService.GetSingleList(id));
+            Guid categoryId;
+
+            try
+            {
+                categoryId = Guid.Parse(CurrentRecord.Record["CategoryId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not inside of a category.");
+            }
+
+            return Ok(_taskListService.GetCurrentCategoryLists(categoryId));
         }
 
-        [HttpPost("AddList")]
-        public IActionResult AddList(string title, Guid categoryId)
+        [HttpGet("{listId}")]
+        public IActionResult GetList(Guid listId)
+        {
+            return Ok(_taskListService.GetList(listId));
+        }
+
+        [HttpPost("Create")]
+        public IActionResult CreateList(string title, Guid? categoryId)
         {
             Guid userId;
 
@@ -64,16 +81,68 @@ namespace ToDoListWithUsersApi.Controllers
             return Ok(_taskListService.CreateList(userId, title, categoryId));
         }
 
-        [HttpPut("EditList")]
-        public IActionResult UpdateList(Guid id, string? title, Guid categoryId)
+        [HttpPut("Edit")]
+        public IActionResult EditList(Guid listId, string? title, Guid? categoryId)
         {
-            return Ok(_taskListService.UpdateList(id, title, categoryId));
+            return Ok(_taskListService.EditList(listId, title, categoryId));
         }
 
-        [HttpDelete("DeleteList")]
-        public IActionResult DeleteList(Guid id)
+        [HttpPut("{listId}/Edit")]
+        public IActionResult EditCurrentList(string? title, Guid? categoryId)
         {
-            return Ok(_taskListService.DeleteList(id));
+            Guid listId;
+
+            try
+            {
+                listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not inside of a list.");
+            }
+
+            return Ok(_taskListService.EditList(listId, title, categoryId));
+        }
+
+        [HttpPut("SortTasksBy")]
+        public IActionResult UpdateSort(SortTasks sortBy)
+        {
+            Guid listId;
+
+            try
+            {
+                listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not inside of a list.");
+            }
+
+            return Ok(_taskListService.UpdateSort(listId, sortBy));
+        }
+
+        [HttpDelete("Delete")]
+        public IActionResult DeleteList(Guid listId)
+        {
+            return Ok(_taskListService.DeleteList(listId));
+        }
+
+
+        [HttpDelete("{listId}/Delete")]
+        public IActionResult DeleteCurrentList()
+        {
+            Guid listId;
+
+            try
+            {
+                listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not logged in.");
+            }
+
+            return Ok(_taskListService.DeleteList(listId));
         }
     }
 }

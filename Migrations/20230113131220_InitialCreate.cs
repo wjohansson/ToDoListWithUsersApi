@@ -33,11 +33,36 @@ namespace ToDoListWithUsersApi.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Adress = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Permission = table.Column<int>(type: "int", nullable: false)
+                    Permission = table.Column<int>(type: "int", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    SortBy = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Category",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    CategoryTitle = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SortBy = table.Column<int>(type: "int", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Category", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_Category_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -48,12 +73,20 @@ namespace ToDoListWithUsersApi.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Title = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    CategoryId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Categoryid = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    DateCreated = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    SortBy = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TaskLists", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TaskLists_Category_Categoryid",
+                        column: x => x.Categoryid,
+                        principalTable: "Category",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_TaskLists_Users_UserId",
                         column: x => x.UserId,
@@ -74,8 +107,8 @@ namespace ToDoListWithUsersApi.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Completed = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Priority = table.Column<int>(type: "int", nullable: false),
-                    DateCreated = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DateCreated = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    SortBy = table.Column<int>(type: "int", nullable: false),
                     TaskListId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
@@ -99,6 +132,7 @@ namespace ToDoListWithUsersApi.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    DateCreated = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     TaskId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
@@ -114,9 +148,19 @@ namespace ToDoListWithUsersApi.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Category_UserId",
+                table: "Category",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SubTasks_TaskId",
                 table: "SubTasks",
                 column: "TaskId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskLists_Categoryid",
+                table: "TaskLists",
+                column: "Categoryid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskLists_UserId",
@@ -139,6 +183,9 @@ namespace ToDoListWithUsersApi.Migrations
 
             migrationBuilder.DropTable(
                 name: "TaskLists");
+
+            migrationBuilder.DropTable(
+                name: "Category");
 
             migrationBuilder.DropTable(
                 name: "Users");

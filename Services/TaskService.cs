@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using ToDoListWithUsersApi.Models;
 using Task = ToDoListWithUsersApi.Models.Task;
 
@@ -17,13 +18,9 @@ namespace ToDoListWithUsersApi.Services
         {
             Task task = new()
             {
-                Id = Guid.NewGuid(),
                 Title = title,
                 Description = description,
-                Completed = false,
                 Priority = priority,
-                DateCreated = DateTime.Now.ToString(),
-                SubTasks = new List<SubTask>(),
                 TaskListId = listId,
             };
 
@@ -33,9 +30,9 @@ namespace ToDoListWithUsersApi.Services
             return task;
         }
 
-        public string DeleteTask(Guid id)
+        public string DeleteTask(Guid taskId)
         {
-            Task task = _dbContext.Tasks.First(u => u.Id == id);
+            Task task = _dbContext.Tasks.First(u => u.Id == taskId);
 
             _dbContext.Tasks.Remove(task);
             _dbContext.SaveChanges();
@@ -43,34 +40,75 @@ namespace ToDoListWithUsersApi.Services
             return "Task was deleted";
         }
 
+        public List<Task> GetTasks()
+        {
+            return _dbContext.Tasks.ToList();
+        }
+
         public List<Task> GetCurrentListTasks(Guid listId)
         {
-            return _dbContext.Tasks.Where(t => t.TaskListId == listId).ToList();
+            return SortBy();
         }
 
-        //public List<Task> GetCurrentListTasks(Guid listId)
-        //{
-
-        //}
-
-        public Task GetSingleTask(Guid id)
+        public Task GetTask(Guid taskId)
         {
-            CurrentRecord.Record["TaskId"] = id.ToString();
-            return _dbContext.Tasks.First(x => x.Id == id);
+            CurrentRecord.Record["TaskId"] = taskId.ToString();
+            return _dbContext.Tasks.First(x => x.Id == taskId);
         }
 
-        public Task UpdateTask(Guid id, string? title, string? description, bool? completed, Priority priority)
+        public Task EditTask(Guid taskId, string? title, string? description, Priority? priority)
         {
-            Task task = _dbContext.Tasks.First(u => u.Id == id);
+            Task task = _dbContext.Tasks.First(u => u.Id == taskId);
 
-            task.Title = title == null ? task.Title : title;
-            task.Description = description == null ? task.Description : description;
-            task.Completed = (bool)(completed == null ? task.Completed : completed);
-            task.Priority = priority == null ? task.Priority : priority;
+            task.Title = title ?? task.Title;
+            task.Description = description ?? task.Description;
+            task.Priority = priority ?? task.Priority;
 
             _dbContext.SaveChanges();
 
             return task;
+        }
+
+        public string ToggleCompletion(Guid taskId)
+        {
+            Task task = _dbContext.Tasks.First(u => u.Id == taskId);
+
+            task.Completed = !task.Completed;
+
+            _dbContext.SaveChanges();
+            return "Task completion toggled";
+        }
+
+        public string UpdateSort(Guid taskId, SortSubTasks sortBy)
+        {
+            Task task = _dbContext.Tasks.First(u => u.Id == taskId);
+
+            task.SortSubTasks = sortBy;
+            _dbContext.SaveChanges();
+
+            return "'Sort by' type was updated";
+        }
+
+        public List<Task> SortBy()
+        {
+            Guid listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+            SortTasks sortBy = _dbContext.TaskLists.First(u => u.Id == listId).SortTasks;
+            List<Task> currentListTasks = _dbContext.Tasks.Where(x => x.TaskListId == listId).ToList();
+
+            switch (sortBy)
+            {
+                case SortTasks.Name:
+                    return currentListTasks.OrderBy(t => t.Title).ToList();
+                case SortTasks.New:
+                    return currentListTasks.OrderByDescending(t => t.DateCreated).ToList();
+                case SortTasks.Old:
+                    return currentListTasks.OrderBy(t => t.DateCreated).ToList();
+                case SortTasks.Priority:
+                    return currentListTasks.OrderByDescending(t => t.Priority).ToList();
+                case SortTasks.Completion:
+                    return currentListTasks.OrderByDescending(t => t.Completed).ToList();
+            }
+            return new List<Task>();
         }
     }
 }

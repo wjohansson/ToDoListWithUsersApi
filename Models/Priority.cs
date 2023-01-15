@@ -1,18 +1,15 @@
 ﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace ToDoListWithUsersApi.Models
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Priority
     {
-        [Description("Low")]
-        Low = 1,
-        [Description("Medium Low")]
+        Low,
         MediumLow,
-        [Description("Medium")]
         Medium,
-        [Description("Medium High")]
         MediumHigh,
-        [Description("High")]
         High
     }
 }

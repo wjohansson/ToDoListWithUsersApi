@@ -20,34 +20,33 @@ namespace ToDoListWithUsersApi.Controllers
             _userService = service;
         }
 
-        [HttpGet("GetAllUsers")]
+        [HttpGet("AllUsers")]
         public IActionResult GetUsers()
         {
             return Ok(_userService.GetAllUsers());
         }
 
-        [HttpGet("GetCurrentUser")]
+        [HttpGet("CurrentUser")]
         public IActionResult GetUser()
         {
-            Guid id;
+            Guid userId;
 
             try
             {
-                //id = Guid.Parse(CurrentRecord.Record["UserId"]);
-                id = Guid.Parse(HttpContext.User.Claims.First(x => x.Type == "UserId").Value);
+                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
             }
             catch (FormatException)
             {
                 return BadRequest("Not logged in");
             }
 
-            return Ok(_userService.GetSingleUser(id));
+            return Ok(_userService.GetUser(userId));
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetAnotherUser(Guid id)
+        [HttpGet("{userId}")]
+        public IActionResult GetAnotherUser(Guid userId)
         {
-            return Ok(_userService.GetSingleUser(id));
+            return Ok(_userService.GetUser(userId));
         }
 
         // https://www.infoworld.com/article/3650668/implement-authorization-for-swagger-in-aspnet-core-6.html
@@ -80,63 +79,82 @@ namespace ToDoListWithUsersApi.Controllers
             return Ok(_userService.Logout());
         }
 
-        [HttpPost("AddAnotherUser")]
-        public IActionResult AddAnotherUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel permission)
+        [HttpPost("CreateAnotherUser")]
+        public IActionResult CreateAnotherUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel permission)
         {
             return Ok(_userService.CreateUser(username, password, firstName, lastName, email, age, gender, adress, permission));
         }
 
         [AllowAnonymous]
-        [HttpPost("AddUser")]
-        public IActionResult AddUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel permission)
+        [HttpPost("Create")]
+        public IActionResult CreateUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress)
         {
-            return Ok(_userService.CreateUser(username, password, firstName, lastName, email, age, gender, adress, permission));
+            User user = _userService.CreateUser(username, password, firstName, lastName, email, age, gender, adress, null);
+            _userService.Login(username, password);
+            return Ok(user);
         }
 
-        [HttpPut("EditAnotherUser")]
-        public IActionResult UpdateAnotherUser(Guid id, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel permission)
+        [HttpPut("Edit")]
+        public IActionResult UpdateAnotherUser(Guid userId, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel permission)
         {
-            return Ok(_userService.UpdateUser(id, username, password, firstName, lastName, email, age, gender, adress, permission));
+            return Ok(_userService.EditUser(userId, username, password, firstName, lastName, email, age, gender, adress, permission));
         }
 
-        [HttpPut("EditUser")]
-        public IActionResult UpdateUser(string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel permission)
+        [HttpPut("{userId}/Edit")]
+        public IActionResult EditUser(string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel permission)
         {
-            Guid id;
+            Guid userId;
 
             try
             {
-                id = Guid.Parse(CurrentRecord.Record["UserId"]);
+                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
             }
             catch (FormatException)
             {
                 return BadRequest("Not logged in.");
             }
 
-            return Ok(_userService.UpdateUser(id, username, password, firstName, lastName, email, age, gender, adress, permission));
+            return Ok(_userService.EditUser(userId, username, password, firstName, lastName, email, age, gender, adress, permission));
         }
 
-        [HttpDelete("DeleteAnotherUser")]
-        public IActionResult DeleteAnotherUser(Guid id)
+        [HttpPut("SortListsBy")]
+        public IActionResult UpdateSort(SortLists sortBy)
         {
-            return Ok(_userService.DeleteUser(id));
+            Guid userId;
+
+            try
+            {
+                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not logged in.");
+            }
+
+            return Ok(_userService.UpdateSort(userId, sortBy));
         }
 
-        [HttpDelete("DeleteUser")]
+        [HttpDelete("Delete")]
+        public IActionResult DeleteAnotherUser(Guid userId)
+        {
+            return Ok(_userService.DeleteUser(userId));
+        }
+
+        [HttpDelete("{userId}/Delete")]
         public IActionResult DeleteUser()
         {
-            Guid id;
+            Guid userId;
 
             try
             {
-                id = Guid.Parse(CurrentRecord.Record["UserId"]);
+                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
             }
             catch (FormatException)
             {
                 return BadRequest("Not logged in.");
             }
 
-            return Ok(_userService.DeleteUser(id));
+            return Ok(new List<string> { _userService.DeleteUser(userId), _userService.Logout() });
         }
     }
 }

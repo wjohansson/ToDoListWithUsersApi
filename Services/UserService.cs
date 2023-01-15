@@ -24,16 +24,20 @@ namespace ToDoListWithUsersApi.Services
             return _dbContext.Users.ToList();
         }
 
-        public User GetSingleUser(Guid id)
+        public User GetUser(Guid userId)
         {
-            return _dbContext.Users.First(x => x.Id == id);
+            return _dbContext.Users.First(x => x.Id == userId);
         }
 
-        public User CreateUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel permission)
+        public User CreateUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel? permission)
         {
+            if (permission == null)
+            {
+                permission = PermissionLevel.User;
+            }
+
             User user = new()
             {
-                Id = Guid.NewGuid(),
                 Username = username,
                 Password = HashAndSaltPassword(password, out var salt),
                 PasswordSalt = salt,
@@ -43,8 +47,7 @@ namespace ToDoListWithUsersApi.Services
                 Age = age,
                 Gender = gender,
                 Adress = adress,
-                Permission = permission,
-                TaskLists = new List<TaskList>()
+                Permission = (PermissionLevel) permission,
             };
 
             _dbContext.Users.Add(user);
@@ -53,29 +56,28 @@ namespace ToDoListWithUsersApi.Services
             return user;
         }
 
-        public User UpdateUser(Guid id, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel permission)
+        public User EditUser(Guid userId, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel? permission)
         {
-            User user = _dbContext.Users.First(u => u.Id == id);
+            User user = _dbContext.Users.First(u => u.Id == userId);
 
-            user.Username = username == null ? user.Username : username;
+            user.Username = username ?? user.Username;
 
-            string newPassword = "";
-            byte[] newSalt = new byte[0];
+            string? newPassword = null;
+            byte[]? newSalt = null;
             if (password != null)
             {
                 newPassword = HashAndSaltPassword(password, out var salt);
                 newSalt = salt;
             }
-            user.Password = password == null ? user.Password : newPassword;
-            user.PasswordSalt = password == null ? user.PasswordSalt : newSalt;
-            user.FirstName = firstName == null ? user.FirstName : firstName;
-            user.LastName = lastName == null ? user.LastName : lastName;
-            user.Email = email == null ? user.Email : email;
-            user.Age = (int)(age == null ? user.Age : age);
-            user.Gender = gender == null ? user.Gender : gender;
-            user.Adress = adress == null ? user.Adress : adress;
-            user.Permission = permission == null ? user.Permission : permission;
-            user.TaskLists = user.TaskLists;
+            user.Password = newPassword ?? user.Password;
+            user.PasswordSalt = newSalt ?? user.PasswordSalt;
+            user.FirstName = firstName ?? user.FirstName;
+            user.LastName = lastName ?? user.LastName;
+            user.Email = email ?? user.Email;
+            user.Age = age ?? user.Age;
+            user.Gender = gender ?? user.Gender;
+            user.Adress = adress ?? user.Adress;
+            user.Permission = permission ?? user.Permission;
 
             _dbContext.SaveChanges();
 
@@ -83,9 +85,9 @@ namespace ToDoListWithUsersApi.Services
 
         }
 
-        public string DeleteUser(Guid id)
+        public string DeleteUser(Guid userId)
         {
-            User user = _dbContext.Users.First(u => u.Id == id);
+            User user = _dbContext.Users.First(u => u.Id == userId);
 
             _dbContext.Users.Remove(user);
             _dbContext.SaveChanges();
@@ -93,7 +95,6 @@ namespace ToDoListWithUsersApi.Services
             return "User was deleted";
         }
 
-        //Exempel funktion på hur man kan fixa auth genom bearer token
         public async Task<string> Login(string? username, string? password)
         {
             if (username == null || password == null)
@@ -123,12 +124,12 @@ namespace ToDoListWithUsersApi.Services
             return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
         }
 
-        public async Task<User> AuthenticateUser(string username, string password)
+        public async Task<User?> AuthenticateUser(string username, string password)
         {
             User user;
             try
             {
-                user = _dbContext.Users.SingleOrDefault(x => x.Username == username);
+                user = _dbContext.Users.Single(x => x.Username == username);
 
                 if (!VerifyPassword(password, user.Password, user.PasswordSalt))
                 {
@@ -178,6 +179,16 @@ namespace ToDoListWithUsersApi.Services
             CurrentRecord.Record.Clear();
 
             return "Logged out.";
+        }
+
+        public string UpdateSort(Guid userId, SortLists sortBy)
+        {
+            User user = _dbContext.Users.First(u => u.Id == userId);
+
+            user.SortLists = sortBy;
+            _dbContext.SaveChanges();
+
+            return "'Sort by' type was updated";
         }
     }
 }

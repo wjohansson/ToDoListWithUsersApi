@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ToDoListWithUsersApi;
 
@@ -10,9 +11,10 @@ using ToDoListWithUsersApi;
 namespace ToDoListWithUsersApi.Migrations
 {
     [DbContext(typeof(UserContext))]
-    partial class UserContextModelSnapshot : ModelSnapshot
+    [Migration("20230113135139_ChangedCategory")]
+    partial class ChangedCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,7 +30,7 @@ namespace ToDoListWithUsersApi.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("SortLists")
+                    b.Property<int>("SortBy")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -91,7 +93,7 @@ namespace ToDoListWithUsersApi.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
-                    b.Property<int>("SortSubTasks")
+                    b.Property<int>("SortBy")
                         .HasColumnType("int");
 
                     b.Property<Guid>("TaskListId")
@@ -114,13 +116,13 @@ namespace ToDoListWithUsersApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid?>("CategoryId")
+                    b.Property<Guid>("CategoryId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("SortTasks")
+                    b.Property<int>("SortBy")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -182,10 +184,7 @@ namespace ToDoListWithUsersApi.Migrations
                     b.Property<int>("Permission")
                         .HasColumnType("int");
 
-                    b.Property<int>("SortCategories")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortLists")
+                    b.Property<int>("SortBy")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")
@@ -228,7 +227,9 @@ namespace ToDoListWithUsersApi.Migrations
                 {
                     b.HasOne("ToDoListWithUsersApi.Models.Category", null)
                         .WithMany("TaskLists")
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ToDoListWithUsersApi.Models.User", null)
                         .WithMany("TaskLists")

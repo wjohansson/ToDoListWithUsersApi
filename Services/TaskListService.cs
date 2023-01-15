@@ -25,24 +25,27 @@ namespace ToDoListWithUsersApi.Services
 
         public List<TaskList> GetCurrentUserLists(Guid userId)
         {
-            var lists = GetAllLists();
-            return lists.Where(x => x.UserId == userId).ToList();
-        }
-        
-        public TaskList GetSingleList(Guid id)
-        {
-            CurrentRecord.Record["ListId"] = id.ToString();
-            return _dbContext.TaskLists.First(x => x.Id == id);
+            return SortBy();
         }
 
-        public TaskList CreateList(Guid userId, string title, Guid categoryId)
+        public List<TaskList> GetCurrentCategoryLists(Guid categoryId)
+        {
+            var lists = SortBy();
+            return lists.Where(x => x.CategoryId == categoryId).ToList();
+        }
+
+        public TaskList GetList(Guid listId)
+        {
+            CurrentRecord.Record["ListId"] = listId.ToString();
+            return _dbContext.TaskLists.First(x => x.Id == listId);
+        }
+
+        public TaskList CreateList(Guid userId, string title, Guid? categoryId)
         {
             TaskList taskList = new()
             {
-                Id = Guid.NewGuid(),
                 Title = title,
-                CategoryId = categoryId,
-                Tasks = new List<Task>(),
+                CategoryId = categoryId ?? null,
                 UserId = userId
             };
 
@@ -52,21 +55,21 @@ namespace ToDoListWithUsersApi.Services
             return taskList;
         }
 
-        public TaskList UpdateList(Guid id, string? title, Guid categoryId)
+        public TaskList EditList(Guid listId, string? title, Guid? categoryId)
         {
-            TaskList taskList = _dbContext.TaskLists.First(u => u.Id == id);
+            TaskList taskList = _dbContext.TaskLists.First(u => u.Id == listId);
 
-            taskList.Title = title == null ? taskList.Title : title;
-            taskList.CategoryId = categoryId == null ? taskList.CategoryId : categoryId;
+            taskList.Title = title ?? taskList.Title;
+            taskList.CategoryId = categoryId ?? taskList.CategoryId;
 
             _dbContext.SaveChanges();
 
             return taskList;
         }
 
-        public string DeleteList(Guid id)
+        public string DeleteList(Guid listId)
         {
-            TaskList taskList = _dbContext.TaskLists.First(u => u.Id == id);
+            TaskList taskList = _dbContext.TaskLists.First(u => u.Id == listId);
 
             _dbContext.TaskLists.Remove(taskList);
             _dbContext.SaveChanges();
@@ -74,5 +77,34 @@ namespace ToDoListWithUsersApi.Services
             return "Task list was deleted";
         }
 
+        public string UpdateSort(Guid listId, SortTasks sortBy)
+        {
+            TaskList list = _dbContext.TaskLists.First(u => u.Id == listId);
+
+            list.SortTasks = sortBy;
+            _dbContext.SaveChanges();
+
+            return "'Sort by' type was updated";
+        }
+
+        public List<TaskList> SortBy()
+        {
+            Guid userId = Guid.Parse(CurrentRecord.Record["UserId"]);
+            SortLists sortBy = _dbContext.Users.First(u => u.Id == userId).SortLists;
+            List<TaskList> currentUserLists = _dbContext.TaskLists.Where(x => x.UserId == userId).ToList();
+
+            switch (sortBy)
+            {
+                case SortLists.Name:
+                    return currentUserLists.OrderBy(t => t.Title).ToList();
+                case SortLists.New:
+                    return currentUserLists.OrderByDescending(t => t.DateCreated).ToList();
+                case SortLists.Old:
+                    return currentUserLists.OrderBy(t => t.DateCreated).ToList();
+                case SortLists.Category:
+                    return currentUserLists.OrderBy(t => t.CategoryId).ToList();
+            }
+            return new List<TaskList>();
+        }
     }
 }

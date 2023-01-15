@@ -9,6 +9,7 @@ namespace ToDoListWithUsersApi
         public DbSet<TaskList> TaskLists { get; set; }
         public DbSet<Task> Tasks { get; set; }
         public DbSet<SubTask> SubTasks { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         public UserContext(DbContextOptions<UserContext> options) : base(options) { }
     }

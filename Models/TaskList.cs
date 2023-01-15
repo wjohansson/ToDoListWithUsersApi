@@ -9,7 +9,9 @@ namespace ToDoListWithUsersApi.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Title { get; set; }
         [ForeignKey("CategoryId")]
-        public Guid CategoryId { get; set; }
+        public Guid? CategoryId { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.Now;
+        public SortTasks SortTasks { get; set; } = SortTasks.New;
         public ICollection<Task> Tasks { get; set; }
         [ForeignKey("UserId")]
         public Guid UserId { get; set; }

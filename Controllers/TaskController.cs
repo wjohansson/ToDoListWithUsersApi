@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Security.Claims;
 using ToDoListWithUsersApi.Services;
 using Task = ToDoListWithUsersApi.Models.Task;
@@ -18,10 +19,17 @@ namespace ToDoListWithUsersApi.Controllers
             _taskService = service;
         }
 
-        [HttpGet("GetCurrentListTasks")]
+        [HttpGet("AllTasks")]
+        public IActionResult GetTasks()
+        {
+            return Ok(_taskService.GetTasks());
+        }
+
+        [HttpGet("CurrentListTasks")]
         public IActionResult GetCurrentListTasks()
         {
             Guid listId;
+            
             try
             {
                 listId = Guid.Parse(CurrentRecord.Record["ListId"]);
@@ -31,23 +39,18 @@ namespace ToDoListWithUsersApi.Controllers
             {
                 return BadRequest("Not inside of a list.");
             }
+
             return Ok(_taskService.GetCurrentListTasks(listId));
         }
 
-        //[HttpGet("GetAllTasks")]
-        //public IActionResult GetAllTasks()
-        //{
-        //    return Ok(_taskService.GetAllTasks(listId));
-        //}
-
-        [HttpGet("{id}")]
-        public IActionResult GetSingleTask(Guid id)
+        [HttpGet("{taskId}")]
+        public IActionResult GetTask(Guid taskId)
         {
-            return Ok(_taskService.GetSingleTask(id));
+            return Ok(_taskService.GetTask(taskId));
         }
 
-        [HttpPost("AddTask")]
-        public IActionResult AddTask(string title, string description, Priority priority)
+        [HttpPost("Create")]
+        public IActionResult CreateTask(string title, string description, Priority priority)
         {
             Guid listId;
 
@@ -62,38 +65,92 @@ namespace ToDoListWithUsersApi.Controllers
             return Ok(_taskService.CreateTask(listId, title, description, priority));
         }
 
-        [HttpPut("EditTask")]
-        public IActionResult UpdateTask(string? title, string? description, bool? completed, Priority priority)
+        [HttpPut("Edit")]
+        public IActionResult EditTask(Guid taskId, string? title, string? description, Priority priority)
         {
-            Guid id;
 
-            try
-            {
-                id = Guid.Parse(CurrentRecord.Record["TaskId"]);
-            }
-            catch (FormatException)
-            {
-                return BadRequest("Not inside of a list.");
-            }
-
-            return Ok(_taskService.UpdateTask(id, title, description, completed, priority));
+            return Ok(_taskService.EditTask(taskId, title, description, priority));
         }
 
-        [HttpDelete("DeleteTask")]
-        public IActionResult DeleteTask()
+        [HttpPut("{taskId}/Edit")]
+        public IActionResult EditCurrentTask(string? title, string? description, Priority priority)
         {
-            Guid id;
+            Guid taskId;
 
             try
             {
-                id = Guid.Parse(CurrentRecord.Record["TaskId"]);
+                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
             }
             catch (FormatException)
             {
-                return BadRequest("Not inside of a list.");
+                return BadRequest("Not inside of a task.");
             }
 
-            return Ok(_taskService.DeleteTask(id));
+            return Ok(_taskService.EditTask(taskId, title, description, priority));
+        }
+
+        [HttpPut("ToggleCompletion")]
+        public IActionResult ToggleCompletion(Guid taskId)
+        {
+
+            return Ok(_taskService.ToggleCompletion(taskId));
+        }
+
+        [HttpPut("{taskId}/ToggleCompletion")]
+        public IActionResult ToggleCurrentCompletion()
+        {
+            Guid taskId;
+
+            try
+            {
+                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not inside of a task.");
+            }
+
+            return Ok(_taskService.ToggleCompletion(taskId));
+        }
+
+        [HttpPut("SortSubTasksBy")]
+        public IActionResult UpdateSort(SortSubTasks sortBy)
+        {
+            Guid taskId;
+
+            try
+            {
+                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not inside of a task.");
+            }
+
+            return Ok(_taskService.UpdateSort(taskId, sortBy));
+        }
+
+        [HttpDelete("Delete")]
+        public IActionResult DeleteTask(Guid taskId)
+        {
+            return Ok(_taskService.DeleteTask(taskId));
+        }
+
+        [HttpDelete("{taskId}/Delete")]
+        public IActionResult DeleteCurrentTask()
+        {
+            Guid taskId;
+
+            try
+            {
+                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not inside of a task.");
+            }
+
+            return Ok(_taskService.DeleteTask(taskId));
         }
     }
 }

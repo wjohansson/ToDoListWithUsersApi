@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Task = ToDoListWithUsersApi.Models.Task;
 
 namespace ToDoListWithUsersApi.Services
 {
@@ -15,7 +16,6 @@ namespace ToDoListWithUsersApi.Services
         {
             SubTask subTask = new()
             {
-                Id = Guid.NewGuid(),
                 Title = title,
                 Description = description,
                 TaskId = taskId,
@@ -27,9 +27,9 @@ namespace ToDoListWithUsersApi.Services
             return subTask;
         }
 
-        public string DeleteSubTask(Guid id)
+        public string DeleteSubTask(Guid subTaskId)
         {
-            SubTask subTask = _dbContext.SubTasks.First(u => u.Id == id);
+            SubTask subTask = _dbContext.SubTasks.First(u => u.Id == subTaskId);
 
             _dbContext.SubTasks.Remove(subTask);
             _dbContext.SaveChanges();
@@ -37,28 +37,51 @@ namespace ToDoListWithUsersApi.Services
             return "Sub Task was deleted";
         }
 
+        public List<SubTask> GetAllSubTasks()
+        {
+            return _dbContext.SubTasks.ToList();
+        }
+
         public List<SubTask> GetCurrentTaskSubTasks(Guid taskId)
         {
-            return _dbContext.SubTasks.Where(x => x.TaskId == taskId).ToList();
+            return SortBy();
+        }
+        
+        public SubTask GetSingleSubTask(Guid subTaskId)
+        {
+            CurrentRecord.Record["SubTaskId"] = subTaskId.ToString();
+
+            return _dbContext.SubTasks.First(x => x.Id == subTaskId);
         }
 
-        public SubTask GetSingleSubTask(Guid id)
+        public SubTask UpdateSubTask(Guid subTaskId, string? title, string? description)
         {
-            CurrentRecord.Record["SubTaskId"] = id.ToString();
+            SubTask subTask = _dbContext.SubTasks.First(u => u.Id == subTaskId);
 
-            return _dbContext.SubTasks.First(x => x.Id == id);
-        }
-
-        public SubTask UpdateSubTask(Guid id, string? title, string? description)
-        {
-            SubTask subTask = _dbContext.SubTasks.First(u => u.Id == id);
-
-            subTask.Title = title == null ? subTask.Title : title;
-            subTask.Description = description == null ? subTask.Description : description;
+            subTask.Title = title ?? subTask.Title;
+            subTask.Description = description ?? subTask.Description;
 
             _dbContext.SaveChanges();
 
             return subTask;
+        }
+
+        public List<SubTask> SortBy()
+        {
+            Guid taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+            SortSubTasks sortBy = _dbContext.Tasks.First(u => u.Id == taskId).SortSubTasks;
+            List<SubTask> currentTaskSubTasks = _dbContext.SubTasks.Where(x => x.TaskId == taskId).ToList();
+
+            switch (sortBy)
+            {
+                case SortSubTasks.Name:
+                    return currentTaskSubTasks.OrderBy(t => t.Title).ToList();
+                case SortSubTasks.New:
+                    return currentTaskSubTasks.OrderByDescending(t => t.DateCreated).ToList();
+                case SortSubTasks.Old:
+                    return currentTaskSubTasks.OrderBy(t => t.DateCreated).ToList();
+            }
+            return new List<SubTask>();
         }
     }
 }

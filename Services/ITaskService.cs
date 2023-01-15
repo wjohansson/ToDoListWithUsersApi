@@ -4,16 +4,22 @@ namespace ToDoListWithUsersApi.Services
 {
     public interface ITaskService
     {
+        List<Task> GetTasks();
+
         List<Task> GetCurrentListTasks(Guid listId);
 
-        //List<Task> GetCurrentListTasks(Guid listId);
-
-        Task GetSingleTask(Guid id);
+        Task GetTask(Guid taskId);
 
         Task CreateTask(Guid listId, string title, string description, Priority priority);
 
-        Task UpdateTask(Guid id, string? title, string? description, bool? completed, Priority priority);
+        Task EditTask(Guid taskId, string? title, string? description, Priority? priority);
 
-        string DeleteTask(Guid id);
+        string DeleteTask(Guid taskId);
+
+        string ToggleCompletion(Guid taskId);
+
+        string UpdateSort(Guid taskId, SortSubTasks sortLists);
+
+        List<Task> SortBy();
     }
 }

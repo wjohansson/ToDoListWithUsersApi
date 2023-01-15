@@ -1,16 +1,14 @@
 ﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace ToDoListWithUsersApi.Models
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum PermissionLevel
     {
-        [Description("User")]
         User,
-        [Description("Moderator")]
         Moderator,
-        [Description("Admin")]
         Admin,
-        [Description("System")]
         System
     }
 }

@@ -20,7 +20,13 @@ namespace ToDoListWithUsersApi.Controllers
             _taskService = service;
         }
 
-        [HttpGet("GetCurrentTaskSubTasks")]
+        [HttpGet("AllSubTasks")]
+        public IActionResult GetAllSubTasks()
+        {
+            return Ok(_taskService.GetAllSubTasks());
+        }
+
+        [HttpGet("CurrentTaskSubTasks")]
         public IActionResult GetCurrentTaskSubTasks()
         {
             Guid taskId;
@@ -37,13 +43,13 @@ namespace ToDoListWithUsersApi.Controllers
             return Ok(_taskService.GetCurrentTaskSubTasks(taskId));
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetSingleSubTask(Guid id)
+        [HttpGet("{subTaskId}")]
+        public IActionResult GetSingleSubTask(Guid subTaskId)
         {
-            return Ok(_taskService.GetSingleSubTask(id));
+            return Ok(_taskService.GetSingleSubTask(subTaskId));
         }
 
-        [HttpPost("AddSubTask")]
+        [HttpPost("Add")]
         public IActionResult AddSubTask(string title, string description)
         {
             Guid taskId;
@@ -60,38 +66,51 @@ namespace ToDoListWithUsersApi.Controllers
             return Ok(_taskService.CreateSubTask(taskId, title, description));
         }
 
-        [HttpPut("EditSubTask")]
-        public IActionResult UpdateSubTask(string? title, string? description)
+        [HttpPut("Edit")]
+        public IActionResult UpdateSubTask(Guid subTaskId, string? title, string? description)
         {
-            Guid id;
-
-            try
-            {
-                id = Guid.Parse(CurrentRecord.Record["SubTaskId"]);
-            }
-            catch (FormatException)
-            {
-                return BadRequest("Not inside of a task.");
-            }
-
-            return Ok(_taskService.UpdateSubTask(id, title, description));
+            return Ok(_taskService.UpdateSubTask(subTaskId, title, description));
         }
 
-        [HttpDelete("DeleteSubTask")]
-        public IActionResult DeleteSubTask()
+        [HttpPut("{subTaskId}/Edit")]
+        public IActionResult UpdateCurrentSubTask(string? title, string? description)
         {
-            Guid id;
+            Guid subTaskId;
 
             try
             {
-                id = Guid.Parse(CurrentRecord.Record["SubTaskId"]);
+                subTaskId = Guid.Parse(CurrentRecord.Record["SubTaskId"]);
             }
             catch (FormatException)
             {
-                return BadRequest("Not inside of a task.");
+                return BadRequest("Not inside of a sub task.");
             }
 
-            return Ok(_taskService.DeleteSubTask(id));
+            return Ok(_taskService.UpdateSubTask(subTaskId, title, description));
+        }
+
+        [HttpDelete("Delete")]
+        public IActionResult DeleteSubTask(Guid subTaskId)
+        {
+
+            return Ok(_taskService.DeleteSubTask(subTaskId));
+        }
+
+        [HttpDelete("{subTaskId}/Delete")]
+        public IActionResult DeleteCurrentSubTask()
+        {
+            Guid subTaskId;
+
+            try
+            {
+                subTaskId = Guid.Parse(CurrentRecord.Record["SubTaskId"]);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Not inside of a sub task.");
+            }
+
+            return Ok(_taskService.DeleteSubTask(subTaskId));
         }
     }
 }

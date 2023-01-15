@@ -4,18 +4,20 @@
     {
         List<User> GetAllUsers();
 
-        User GetSingleUser(Guid id);
+        User GetUser(Guid userId);
 
-        User CreateUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel permission);
+        User CreateUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel? permission);
 
-        User UpdateUser(Guid id, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel permission);
+        User EditUser(Guid userId, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel? permission);
 
-        string DeleteUser(Guid id);
-        //public string Login(string username, string password);
+        string DeleteUser(Guid userId);
 
         Task<string> Login(string? username, string? password);
-        Task<User> AuthenticateUser(string username, string password);
+
+        Task<User?> AuthenticateUser(string username, string password);
 
         string Logout();
+
+        string UpdateSort(Guid userId, SortLists sortLists);
     }
 }
