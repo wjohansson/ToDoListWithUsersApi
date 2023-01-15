@@ -31,10 +31,7 @@ namespace ToDoListWithUsersApi.Services
 
         public User CreateUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel? permission)
         {
-            if (permission == null)
-            {
-                permission = PermissionLevel.User;
-            }
+            permission ??= PermissionLevel.User;
 
             User user = new()
             {
@@ -82,7 +79,63 @@ namespace ToDoListWithUsersApi.Services
             _dbContext.SaveChanges();
 
             return user;
+        }
 
+        public User PromoteUser(Guid userId)
+        {
+            User user = _dbContext.Users.First(u => u.Id == userId);
+            User currentUserLoggedIn = _dbContext.Users.First(u => u.Id == Guid.Parse(CurrentRecord.Record["UserId"]));
+
+            switch (user.Permission)
+            {
+                case PermissionLevel.System:
+                    throw new InvalidOperationException("Can not change system user.");
+                case PermissionLevel.Admin:
+                    throw new InvalidOperationException("Can not promote to system.");
+                case PermissionLevel.Moderator:
+                    if (currentUserLoggedIn.Permission < PermissionLevel.Admin)
+                    {
+                        throw new InvalidOperationException("Insufficient privileges.");
+                    }
+
+                    break;
+            }
+
+            user.Permission += 1;
+            _dbContext.SaveChanges();
+            return user;
+        }
+
+        public User DemoteUser(Guid userId)
+        {
+            User user = _dbContext.Users.First(u => u.Id == userId);
+            User currentUserLoggedIn = _dbContext.Users.First(u => u.Id == Guid.Parse(CurrentRecord.Record["UserId"]));
+
+            switch (user.Permission)
+            {
+                case PermissionLevel.System:
+                    throw new InvalidOperationException("Can not change system user.");
+                case PermissionLevel.Admin:
+                    if (currentUserLoggedIn.Permission < PermissionLevel.System)
+                    {
+                        throw new InvalidOperationException("Insufficient privileges.");
+                    }
+
+                    break;
+                case PermissionLevel.Moderator:
+                    if (currentUserLoggedIn.Permission < PermissionLevel.Admin)
+                    {
+                        throw new InvalidOperationException("Insufficient privileges.");
+                    }
+
+                    break;
+                case PermissionLevel.User:
+                    throw new InvalidOperationException("Can not demote from user.");
+            }
+
+            user.Permission -= 1;
+            _dbContext.SaveChanges();
+            return user;
         }
 
         public string DeleteUser(Guid userId)

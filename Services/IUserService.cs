@@ -10,6 +10,10 @@
 
         User EditUser(Guid userId, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel? permission);
 
+        User PromoteUser(Guid userId);
+
+        User DemoteUser(Guid userId);
+
         string DeleteUser(Guid userId);
 
         Task<string> Login(string? username, string? password);

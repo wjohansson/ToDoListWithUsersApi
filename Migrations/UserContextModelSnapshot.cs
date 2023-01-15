@@ -42,7 +42,7 @@ namespace ToDoListWithUsersApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("ToDoListWithUsersApi.Models.SubTask", b =>
@@ -69,7 +69,7 @@ namespace ToDoListWithUsersApi.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("SubTasks");
+                    b.ToTable("SubTasks", (string)null);
                 });
 
             modelBuilder.Entity("ToDoListWithUsersApi.Models.Task", b =>
@@ -105,7 +105,7 @@ namespace ToDoListWithUsersApi.Migrations
 
                     b.HasIndex("TaskListId");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Tasks", (string)null);
                 });
 
             modelBuilder.Entity("ToDoListWithUsersApi.Models.TaskList", b =>
@@ -136,7 +136,7 @@ namespace ToDoListWithUsersApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TaskLists");
+                    b.ToTable("TaskLists", (string)null);
                 });
 
             modelBuilder.Entity("ToDoListWithUsersApi.Models.User", b =>
@@ -194,7 +194,7 @@ namespace ToDoListWithUsersApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ToDoListWithUsersApi.Models.Category", b =>

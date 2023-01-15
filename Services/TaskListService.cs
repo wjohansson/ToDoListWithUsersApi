@@ -93,18 +93,14 @@ namespace ToDoListWithUsersApi.Services
             SortLists sortBy = _dbContext.Users.First(u => u.Id == userId).SortLists;
             List<TaskList> currentUserLists = _dbContext.TaskLists.Where(x => x.UserId == userId).ToList();
 
-            switch (sortBy)
+            return sortBy switch
             {
-                case SortLists.Name:
-                    return currentUserLists.OrderBy(t => t.Title).ToList();
-                case SortLists.New:
-                    return currentUserLists.OrderByDescending(t => t.DateCreated).ToList();
-                case SortLists.Old:
-                    return currentUserLists.OrderBy(t => t.DateCreated).ToList();
-                case SortLists.Category:
-                    return currentUserLists.OrderBy(t => t.CategoryId).ToList();
-            }
-            return new List<TaskList>();
+                SortLists.Name => currentUserLists.OrderBy(t => t.Title).ToList(),
+                SortLists.New => currentUserLists.OrderByDescending(t => t.DateCreated).ToList(),
+                SortLists.Old => currentUserLists.OrderBy(t => t.DateCreated).ToList(),
+                SortLists.Category => currentUserLists.OrderBy(t => t.CategoryId).ToList(),
+                _ => new List<TaskList>(),
+            };
         }
     }
 }

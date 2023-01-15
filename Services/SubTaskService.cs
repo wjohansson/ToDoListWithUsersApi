@@ -72,16 +72,13 @@ namespace ToDoListWithUsersApi.Services
             SortSubTasks sortBy = _dbContext.Tasks.First(u => u.Id == taskId).SortSubTasks;
             List<SubTask> currentTaskSubTasks = _dbContext.SubTasks.Where(x => x.TaskId == taskId).ToList();
 
-            switch (sortBy)
+            return sortBy switch
             {
-                case SortSubTasks.Name:
-                    return currentTaskSubTasks.OrderBy(t => t.Title).ToList();
-                case SortSubTasks.New:
-                    return currentTaskSubTasks.OrderByDescending(t => t.DateCreated).ToList();
-                case SortSubTasks.Old:
-                    return currentTaskSubTasks.OrderBy(t => t.DateCreated).ToList();
-            }
-            return new List<SubTask>();
+                SortSubTasks.Name => currentTaskSubTasks.OrderBy(t => t.Title).ToList(),
+                SortSubTasks.New => currentTaskSubTasks.OrderByDescending(t => t.DateCreated).ToList(),
+                SortSubTasks.Old => currentTaskSubTasks.OrderBy(t => t.DateCreated).ToList(),
+                _ => new List<SubTask>(),
+            };
         }
     }
 }

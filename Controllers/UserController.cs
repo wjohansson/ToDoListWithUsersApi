@@ -101,7 +101,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("{userId}/Edit")]
-        public IActionResult EditUser(string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel permission)
+        public IActionResult EditUser(string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress)
         {
             Guid userId;
 
@@ -114,7 +114,41 @@ namespace ToDoListWithUsersApi.Controllers
                 return BadRequest("Not logged in.");
             }
 
-            return Ok(_userService.EditUser(userId, username, password, firstName, lastName, email, age, gender, adress, permission));
+            return Ok(_userService.EditUser(userId, username, password, firstName, lastName, email, age, gender, adress, null));
+        }
+
+        [HttpPut("Promote")]
+        public IActionResult PromoteAnotherUser(Guid userId)
+        {
+            User user;
+
+            try
+            {
+                user = _userService.PromoteUser(userId);
+            }
+            catch (Exception e) when (e.InnerException == new InvalidOperationException())
+            {
+                return BadRequest(e.Message);
+            }
+
+            return Ok(user);
+        }
+
+        [HttpPut("Demote")]
+        public IActionResult DemoteAnotherUser(Guid userId)
+        {
+            User user;
+
+            try
+            {
+                user = _userService.DemoteUser(userId);
+            }
+            catch (Exception e) when (e.InnerException == new InvalidOperationException())
+            {
+                return BadRequest(e.Message);
+            }
+
+            return Ok(user);
         }
 
         [HttpPut("SortListsBy")]
