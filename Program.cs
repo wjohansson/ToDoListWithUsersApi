@@ -1,13 +1,11 @@
-global using ToDoListWithUsersApi.Models;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using ToDoListWithUsersApi;
 using ToDoListWithUsersApi.Security;
 using ToDoListWithUsersApi.Services;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,11 +41,9 @@ builder.Services.AddSwaggerGen(option =>
                     Id="bearer"
                 }
             },
-            new string[]{}
+            Array.Empty<string>()
         }
     });
-
-    //option.UseInlineDefinitionsForEnums(); //Fixar denna så att man ser enums istället för siffror?
 });
 
 //builder.Services.AddAuthentication("BasicAuthentication")
@@ -55,7 +51,6 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddAuthentication("Bearer")
     .AddScheme<AuthenticationSchemeOptions, BearerAuthenticationHandler>("Bearer", null);
-
 
 builder.Services.AddAuthorization();
 
@@ -73,6 +68,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.Lifetime.ApplicationStarted.Register(new StartupService().OnStarted);
 
 app.UseHttpsRedirection();
 

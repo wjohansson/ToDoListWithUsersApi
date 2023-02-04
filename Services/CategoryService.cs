@@ -1,4 +1,10 @@
-﻿using ToDoListWithUsersApi.Models;
+﻿using DataLibrary;
+using DataLibrary.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace ToDoListWithUsersApi.Services
 {
@@ -10,13 +16,14 @@ namespace ToDoListWithUsersApi.Services
         {
             _dbContext = context;
         }
-        public Category CreateCategory(Guid userId, string title)
+        public CategoryModel CreateCategory(Guid userId, CategoryModel category)
         {
-            Category category = new()
+            if (_dbContext.Categories.Any(x => x.Title == category.Title))
             {
-                Title = title,
-                UserId = userId
-            };
+                throw new DuplicateNameException("Category already exists");
+            }
+
+            category.UserId = userId;
 
             _dbContext.Categories.Add(category);
             _dbContext.SaveChanges();
@@ -24,38 +31,55 @@ namespace ToDoListWithUsersApi.Services
             return category;
         }
 
-        public string DeleteCategory(Guid categoryId)
+        public CategoryModel DeleteCategory(CategoryModel category)
         {
-            Category category = _dbContext.Categories.First(u => u.Id == categoryId);
+            CategoryModel oldCategory = _dbContext.Categories.Include(x => x.TaskLists).First(u => u.Id == category.Id);
+            
+            if (oldCategory.Title == "No category")
+            {
+                throw new Exception();
+            }
 
-            _dbContext.Categories.Remove(category);
+            CategoryModel noCategory = _dbContext.Categories.First(u => u.Title == "No category" && u.UserId == oldCategory.UserId);
+
+            foreach (var list in oldCategory.TaskLists)
+            {
+                list.CategoryId = noCategory.Id;
+            }
+
+            _dbContext.Categories.Remove(oldCategory);
             _dbContext.SaveChanges();
 
-            return "Category was deleted";
+            return oldCategory;
         }
 
-        public List<Category> GetCategories()
+        public List<CategoryModel> GetCategories()
         {
-            return _dbContext.Categories.ToList();
+            var categories = _dbContext.Categories.Include(x => x.TaskLists).ToList();
+
+            return categories;
         }
 
-        public List<Category> GetCurrentUserCategories(Guid userId)
+        public List<CategoryModel> GetCurrentUserCategories(Guid userId)
         {
             var categories = GetCategories();
-            return categories.Where(x => x.UserId == userId).ToList();
+            var currentCategories = categories.Where(x => x.UserId == userId).ToList();
+
+            return currentCategories;
         }
 
-        public Category GetCategory(Guid categoryId)
+        public CategoryModel GetCategory(CategoryModel category)
         {
-            CurrentRecord.Record["CategoryId"] = categoryId.ToString();
-            return _dbContext.Categories.First(x => x.Id == categoryId);
+            var currentCategory = _dbContext.Categories.Include(x => x.TaskLists).First(x => x.Id == category.Id);
+            CurrentActive.Id["CategoryId"] = category.Id;
+            return currentCategory;
         }
 
-        public Category EditCategory(Guid categoryId, string? title)
+        public CategoryModel EditCategory(CategoryModel newCategory)
         {
-            Category category = _dbContext.Categories.First(u => u.Id == categoryId);
+            CategoryModel category = _dbContext.Categories.Include(x => x.TaskLists).First(u => u.Id == newCategory.Id);
 
-            category.Title = title ?? category.Title;
+            category.Title = newCategory.Title ?? category.Title;
 
             _dbContext.SaveChanges();
 

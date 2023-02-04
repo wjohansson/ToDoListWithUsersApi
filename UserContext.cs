@@ -1,15 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Task = ToDoListWithUsersApi.Models.Task;
+﻿using DataLibrary.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ToDoListWithUsersApi
 {
     public class UserContext : DbContext
     {
-        public DbSet<User> Users { get; set; }
-        public DbSet<TaskList> TaskLists { get; set; }
-        public DbSet<Task> Tasks { get; set; }
-        public DbSet<SubTask> SubTasks { get; set; }
-        public DbSet<Category> Categories { get; set; }
+        public DbSet<UserModel> Users { get; set; }
+        public DbSet<TaskListModel> TaskLists { get; set; }
+        public DbSet<TaskModel> Tasks { get; set; }
+        public DbSet<SubTaskModel> SubTasks { get; set; }
+        public DbSet<CategoryModel> Categories { get; set; }
 
         public UserContext(DbContextOptions<UserContext> options) : base(options) { }
     }

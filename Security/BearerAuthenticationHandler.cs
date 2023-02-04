@@ -5,6 +5,8 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text;
 using ToDoListWithUsersApi.Services;
+using DataLibrary;
+using DataLibrary.Models;
 
 namespace ToDoListWithUsersApi.Security
 {
@@ -34,11 +36,13 @@ namespace ToDoListWithUsersApi.Security
             }
 
             Guid userId;
+            UserModel user;
             //string username;
 
             try
             {
-                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
+                userId = CurrentActive.Id["UserId"];
+                user = _userService.GetUser(userId);
             }
             catch (Exception)
             {
@@ -47,29 +51,11 @@ namespace ToDoListWithUsersApi.Security
 
             //Kan man lägga till funktion för att kolla vilken permission level den har här???
 
-            //try
-            //{
-            //    var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
-            //    var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(authHeader.Parameter)).Split(':');
-
-            //    username = decoded[0];
-            //    var password = decoded[1];
-
-            //    User? user = await _userService.AuthenticateUser(username, password);
-
-            //    if (user == null)
-            //    {
-            //        throw new UnauthorizedAccessException();
-            //    }
-
-            //    userId = user.Id;
-            //}
-            //catch (Exception)
-            //{
-            //    return AuthenticateResult.Fail("Invalid login");
-            //}
-
-            var claims = new[] { new Claim("UserId", userId.ToString()) };
+            var claims = new[] 
+            { 
+                new Claim("UserId", userId.ToString()),
+                new Claim(ClaimTypes.Role, user.Permission.ToString())
+            };
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);

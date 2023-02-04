@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "5Smm1HMYocaEejxwt+Ca7Dpu59+YmPTbt8qC+9kQVLsUDaKZ2oWOOIpjmIgq0lrmmL2+xSrADF8K8DIFW4VY8g==",
+  "dgSpecHash": "Sol0dE/tYisewHgRfIZRBQjeZW4596QuYIqOZCZ2G2giBLXhiG/TWND9RWKWtGFolF48Az04Xll3RIruPAaFoQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\willi\\source\\repos\\ToDoListWithUsersApi\\ToDoListWithUsersApi\\ToDoListWithUsersApi.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\willi\\.nuget\\packages\\fluentvalidation\\11.4.0\\fluentvalidation.11.4.0.nupkg.sha512",
     "C:\\Users\\willi\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\willi\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\6.0.4\\microsoft.aspnetcore.authentication.jwtbearer.6.0.4.nupkg.sha512",
     "C:\\Users\\willi\\.nuget\\packages\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",

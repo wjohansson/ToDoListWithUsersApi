@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using DataLibrary;
+using DataLibrary.Enums;
+using DataLibrary.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Security;
 using System.Security.Claims;
-using ToDoListWithUsersApi.Models;
-using Task = ToDoListWithUsersApi.Models.Task;
 
 namespace ToDoListWithUsersApi.Services
 {
@@ -18,36 +20,45 @@ namespace ToDoListWithUsersApi.Services
             _dbContext = context;
         }
 
-        public List<TaskList> GetAllLists()
+        public List<TaskListModel> GetAllLists()
         {
-            return _dbContext.TaskLists.ToList();
+            var lists = _dbContext.TaskLists.Include(x => x.Tasks).ToList();
+
+            return lists;
         }
 
-        public List<TaskList> GetCurrentUserLists(Guid userId)
+        public List<TaskListModel> GetCurrentUserLists()
         {
             return SortBy();
         }
 
-        public List<TaskList> GetCurrentCategoryLists(Guid categoryId)
+        public List<TaskListModel> GetCurrentCategoryLists()
         {
             var lists = SortBy();
-            return lists.Where(x => x.CategoryId == categoryId).ToList();
+            return lists.Where(x => x.CategoryId == CurrentActive.Id["CategoryId"]).ToList();
         }
 
-        public TaskList GetList(Guid listId)
+        public TaskListModel GetList(Guid listId)
         {
-            CurrentRecord.Record["ListId"] = listId.ToString();
-            return _dbContext.TaskLists.First(x => x.Id == listId);
+            CurrentActive.Id["ListId"] = listId;
+            var taskList = _dbContext.TaskLists.Include(x => x.Tasks).First(x => x.Id == listId);
+
+            return taskList;
         }
 
-        public TaskList CreateList(Guid userId, string title, Guid? categoryId)
+        public TaskListModel CreateList(Guid userId, TaskListModel taskList)
         {
-            TaskList taskList = new()
+            if (_dbContext.TaskLists.Any(x => x.Title == taskList.Title && x.UserId == userId))
             {
-                Title = title,
-                CategoryId = categoryId ?? null,
-                UserId = userId
-            };
+                throw new Exception();
+            }
+
+            if (taskList.CategoryId == null)
+            {
+                taskList.CategoryId = _dbContext.Categories.First(x => x.Title == "No category" && x.UserId == userId).Id;
+            }
+
+            taskList.UserId = userId; 
 
             _dbContext.TaskLists.Add(taskList);
             _dbContext.SaveChanges();
@@ -55,51 +66,55 @@ namespace ToDoListWithUsersApi.Services
             return taskList;
         }
 
-        public TaskList EditList(Guid listId, string? title, Guid? categoryId)
+        public TaskListModel EditList(TaskListModel newTaskList)
         {
-            TaskList taskList = _dbContext.TaskLists.First(u => u.Id == listId);
+            TaskListModel taskList = _dbContext.TaskLists.Include(x => x.Tasks).First(u => u.Id == newTaskList.Id);
 
-            taskList.Title = title ?? taskList.Title;
-            taskList.CategoryId = categoryId ?? taskList.CategoryId;
+            if (_dbContext.TaskLists.Any(x => x.UserId == taskList.UserId && x.Title == newTaskList.Title && x.Title != taskList.Title))
+            {
+                throw new Exception();
+            }
+
+            taskList.Title = newTaskList.Title ?? taskList.Title;
+            taskList.CategoryId = newTaskList.CategoryId != Guid.Empty ? newTaskList.CategoryId : taskList.CategoryId;
 
             _dbContext.SaveChanges();
 
             return taskList;
         }
 
-        public string DeleteList(Guid listId)
+        public TaskListModel DeleteList(TaskListModel taskList)
         {
-            TaskList taskList = _dbContext.TaskLists.First(u => u.Id == listId);
+            TaskListModel oldTaskList = _dbContext.TaskLists.Include(x => x.Tasks).First(u => u.Id == taskList.Id);
 
-            _dbContext.TaskLists.Remove(taskList);
+            _dbContext.TaskLists.Remove(oldTaskList);
             _dbContext.SaveChanges();
 
-            return "Task list was deleted";
+            return oldTaskList;
         }
 
-        public string UpdateSort(Guid listId, SortTasks sortBy)
+        public TaskListModel UpdateSort(TaskListModel newTaskList)
         {
-            TaskList list = _dbContext.TaskLists.First(u => u.Id == listId);
+            TaskListModel list = _dbContext.TaskLists.Include(x => x.Tasks).First(u => u.Id == newTaskList.Id);
 
-            list.SortTasks = sortBy;
+            list.SortTasks = newTaskList.SortTasks;
             _dbContext.SaveChanges();
 
-            return "'Sort by' type was updated";
+            return list;
         }
 
-        public List<TaskList> SortBy()
+        public List<TaskListModel> SortBy()
         {
-            Guid userId = Guid.Parse(CurrentRecord.Record["UserId"]);
+            Guid userId = CurrentActive.Id["UserId"];
             SortLists sortBy = _dbContext.Users.First(u => u.Id == userId).SortLists;
-            List<TaskList> currentUserLists = _dbContext.TaskLists.Where(x => x.UserId == userId).ToList();
+            List<TaskListModel> currentUserLists = _dbContext.TaskLists.Include(x => x.Tasks).Where(x => x.UserId == userId).ToList();
 
             return sortBy switch
             {
                 SortLists.Name => currentUserLists.OrderBy(t => t.Title).ToList(),
                 SortLists.New => currentUserLists.OrderByDescending(t => t.DateCreated).ToList(),
                 SortLists.Old => currentUserLists.OrderBy(t => t.DateCreated).ToList(),
-                SortLists.Category => currentUserLists.OrderBy(t => t.CategoryId).ToList(),
-                _ => new List<TaskList>(),
+                _ => new List<TaskListModel>(),
             };
         }
     }

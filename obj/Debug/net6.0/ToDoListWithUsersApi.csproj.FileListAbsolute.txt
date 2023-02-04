@@ -46,3 +46,6 @@ C:\Users\willi\source\repos\ToDoListWithUsersApi\ToDoListWithUsersApi\bin\Debug\
 C:\Users\willi\source\repos\ToDoListWithUsersApi\ToDoListWithUsersApi\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\willi\source\repos\ToDoListWithUsersApi\ToDoListWithUsersApi\bin\Debug\net6.0\Microsoft.IdentityModel.Protocols.dll
 C:\Users\willi\source\repos\ToDoListWithUsersApi\ToDoListWithUsersApi\bin\Debug\net6.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\willi\source\repos\ToDoListWithUsersApi\ToDoListWithUsersApi\bin\Debug\net6.0\FluentValidation.dll
+C:\Users\willi\source\repos\ToDoListWithUsersApi\ToDoListWithUsersApi\bin\Debug\net6.0\DataLibrary.dll
+C:\Users\willi\source\repos\ToDoListWithUsersApi\ToDoListWithUsersApi\bin\Debug\net6.0\DataLibrary.pdb

@@ -1,19 +1,21 @@
-﻿namespace ToDoListWithUsersApi.Services
+﻿using DataLibrary.Models;
+
+namespace ToDoListWithUsersApi.Services
 {
     public interface ISubTaskService
     {
-        List<SubTask> GetAllSubTasks();
+        List<SubTaskModel> GetAllSubTasks();
 
-        List<SubTask> GetCurrentTaskSubTasks(Guid taskId);
+        List<SubTaskModel> GetCurrentTaskSubTasks();
 
-        SubTask GetSingleSubTask(Guid subTaskId);
+        SubTaskModel GetSubTask(Guid subTaskId);
 
-        SubTask CreateSubTask(Guid taskId, string title, string description);
+        SubTaskModel CreateSubTask(Guid taskId, SubTaskModel subTask);
 
-        SubTask UpdateSubTask(Guid subTaskId, string? title, string? description);
+        SubTaskModel EditSubTask(SubTaskModel newSubTask);
 
-        string DeleteSubTask(Guid subTaskId);
+        SubTaskModel DeleteSubTask(SubTaskModel subTask);
 
-        List<SubTask> SortBy();
+        List<SubTaskModel> SortBy();
     }
 }

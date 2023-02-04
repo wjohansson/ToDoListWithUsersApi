@@ -8,6 +8,8 @@
     ".NETCoreApp,Version=v6.0": {
       "ToDoListWithUsersApi/1.0.0": {
         "dependencies": {
+          "DataLibrary": "1.0.0",
+          "FluentValidation": "11.4.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "6.0.4",
           "Microsoft.EntityFrameworkCore": "6.0.4",
           "Microsoft.EntityFrameworkCore.Design": "6.0.4",
@@ -18,6 +20,14 @@
         },
         "runtime": {
           "ToDoListWithUsersApi.dll": {}
+        }
+      },
+      "FluentValidation/11.4.0": {
+        "runtime": {
+          "lib/net6.0/FluentValidation.dll": {
+            "assemblyVersion": "11.0.0.0",
+            "fileVersion": "11.4.0.0"
+          }
         }
       },
       "Humanizer.Core/2.8.26": {
@@ -319,7 +329,12 @@
           "System.Runtime": "4.3.0"
         }
       },
-      "System.Text.Json/4.7.2": {}
+      "System.Text.Json/4.7.2": {},
+      "DataLibrary/1.0.0": {
+        "runtime": {
+          "DataLibrary.dll": {}
+        }
+      }
     }
   },
   "libraries": {
@@ -327,6 +342,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "FluentValidation/11.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-WZJyrNf4suiaI6avVG32W9kmBLC3+V5rDTcLeRJjeU4tDmTyDIOz1459DzCKppXs34YpZg9rCUzDY3M4XxG7Ug==",
+      "path": "fluentvalidation/11.4.0",
+      "hashPath": "fluentvalidation.11.4.0.nupkg.sha512"
     },
     "Humanizer.Core/2.8.26": {
       "type": "package",
@@ -614,6 +636,11 @@
       "sha512": "sha512-TcMd95wcrubm9nHvJEQs70rC0H/8omiSGGpU4FQ/ZA1URIqD4pjmFJh2Mfv1yH1eHgJDWTi2hMDXwTET+zOOyg==",
       "path": "system.text.json/4.7.2",
       "hashPath": "system.text.json.4.7.2.nupkg.sha512"
+    },
+    "DataLibrary/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

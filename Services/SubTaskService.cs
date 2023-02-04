@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
-using Task = ToDoListWithUsersApi.Models.Task;
+﻿using DataLibrary;
+using DataLibrary.Enums;
+using DataLibrary.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ToDoListWithUsersApi.Services
 {
@@ -12,14 +15,14 @@ namespace ToDoListWithUsersApi.Services
             _dbContext = context;
         }
 
-        public SubTask CreateSubTask(Guid taskId, string title, string description)
+        public SubTaskModel CreateSubTask(Guid taskId, SubTaskModel subTask)
         {
-            SubTask subTask = new()
+            if (_dbContext.SubTasks.Any(x => x.Title == subTask.Title && x.TaskId == taskId))
             {
-                Title = title,
-                Description = description,
-                TaskId = taskId,
-            };
+                throw new Exception();
+            }
+
+            subTask.TaskId = taskId;
 
             _dbContext.SubTasks.Add(subTask);
             _dbContext.SaveChanges();
@@ -27,57 +30,62 @@ namespace ToDoListWithUsersApi.Services
             return subTask;
         }
 
-        public string DeleteSubTask(Guid subTaskId)
+        public SubTaskModel DeleteSubTask(SubTaskModel subTask)
         {
-            SubTask subTask = _dbContext.SubTasks.First(u => u.Id == subTaskId);
+            SubTaskModel oldSubTask = _dbContext.SubTasks.First(u => u.Id == subTask.Id);
 
-            _dbContext.SubTasks.Remove(subTask);
+            _dbContext.SubTasks.Remove(oldSubTask);
             _dbContext.SaveChanges();
 
-            return "Sub Task was deleted";
+            return oldSubTask;
         }
 
-        public List<SubTask> GetAllSubTasks()
+        public List<SubTaskModel> GetAllSubTasks()
         {
             return _dbContext.SubTasks.ToList();
         }
 
-        public List<SubTask> GetCurrentTaskSubTasks(Guid taskId)
+        public List<SubTaskModel> GetCurrentTaskSubTasks()
         {
             return SortBy();
         }
         
-        public SubTask GetSingleSubTask(Guid subTaskId)
+        public SubTaskModel GetSubTask(Guid subTaskId)
         {
-            CurrentRecord.Record["SubTaskId"] = subTaskId.ToString();
+            CurrentActive.Id["SubTaskId"] = subTaskId;
 
             return _dbContext.SubTasks.First(x => x.Id == subTaskId);
         }
 
-        public SubTask UpdateSubTask(Guid subTaskId, string? title, string? description)
+        public SubTaskModel EditSubTask(SubTaskModel newSubTask)
         {
-            SubTask subTask = _dbContext.SubTasks.First(u => u.Id == subTaskId);
+            SubTaskModel subTask = _dbContext.SubTasks.First(u => u.Id == newSubTask.Id);
 
-            subTask.Title = title ?? subTask.Title;
-            subTask.Description = description ?? subTask.Description;
+            if (_dbContext.SubTasks.Any(x => x.TaskId == subTask.TaskId && x.Title == newSubTask.Title && x.Title != subTask.Title))
+            {
+                throw new Exception();
+            }
+
+            subTask.Title = newSubTask.Title ?? subTask.Title;
+            subTask.Description = newSubTask.Description ?? subTask.Description;
 
             _dbContext.SaveChanges();
 
             return subTask;
         }
 
-        public List<SubTask> SortBy()
+        public List<SubTaskModel> SortBy()
         {
-            Guid taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+            Guid taskId = CurrentActive.Id["TaskId"];
             SortSubTasks sortBy = _dbContext.Tasks.First(u => u.Id == taskId).SortSubTasks;
-            List<SubTask> currentTaskSubTasks = _dbContext.SubTasks.Where(x => x.TaskId == taskId).ToList();
+            List<SubTaskModel> currentTaskSubTasks = _dbContext.SubTasks.Where(x => x.TaskId == taskId).ToList();
 
             return sortBy switch
             {
                 SortSubTasks.Name => currentTaskSubTasks.OrderBy(t => t.Title).ToList(),
                 SortSubTasks.New => currentTaskSubTasks.OrderByDescending(t => t.DateCreated).ToList(),
                 SortSubTasks.Old => currentTaskSubTasks.OrderBy(t => t.DateCreated).ToList(),
-                _ => new List<SubTask>(),
+                _ => new List<SubTaskModel>(),
             };
         }
     }

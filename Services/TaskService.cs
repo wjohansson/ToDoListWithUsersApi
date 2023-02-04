@@ -1,7 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DataLibrary;
+using DataLibrary.Enums;
+using DataLibrary.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using ToDoListWithUsersApi.Models;
-using Task = ToDoListWithUsersApi.Models.Task;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace ToDoListWithUsersApi.Services
 {
@@ -14,15 +17,14 @@ namespace ToDoListWithUsersApi.Services
             _dbContext = context;
         }
 
-        public Task CreateTask(Guid listId, string title, string description, Priority priority)
+        public TaskModel CreateTask(Guid listId, TaskModel task)
         {
-            Task task = new()
+            if (_dbContext.Tasks.Any(x => x.Title == task.Title && x.TaskListId == listId))
             {
-                Title = title,
-                Description = description,
-                Priority = priority,
-                TaskListId = listId,
-            };
+                throw new Exception();
+            }
+
+            task.TaskListId = listId;
 
             _dbContext.Tasks.Add(task);
             _dbContext.SaveChanges();
@@ -30,70 +32,79 @@ namespace ToDoListWithUsersApi.Services
             return task;
         }
 
-        public string DeleteTask(Guid taskId)
+        public TaskModel DeleteTask(TaskModel task)
         {
-            Task task = _dbContext.Tasks.First(u => u.Id == taskId);
+            TaskModel oldTask = _dbContext.Tasks.Include(x => x.SubTasks).First(u => u.Id == task.Id);
 
-            _dbContext.Tasks.Remove(task);
+            _dbContext.Tasks.Remove(oldTask);
             _dbContext.SaveChanges();
 
-            return "Task was deleted";
+            return oldTask;
         }
 
-        public List<Task> GetTasks()
+        public List<TaskModel> GetTasks()
         {
-            return _dbContext.Tasks.ToList();
+            var tasks = _dbContext.Tasks.Include(x => x.SubTasks).ToList();
+
+            return tasks;
         }
 
-        public List<Task> GetCurrentListTasks(Guid listId)
+        public List<TaskModel> GetCurrentListTasks()
         {
             return SortBy();
         }
 
-        public Task GetTask(Guid taskId)
+        public TaskModel GetTask(Guid taskId)
         {
-            CurrentRecord.Record["TaskId"] = taskId.ToString();
-            return _dbContext.Tasks.First(x => x.Id == taskId);
+            CurrentActive.Id["TaskId"] = taskId;
+            var task = _dbContext.Tasks.Include(x => x.SubTasks).First(x => x.Id == taskId);
+
+            return task;
         }
 
-        public Task EditTask(Guid taskId, string? title, string? description, Priority? priority)
+        public TaskModel EditTask(TaskModel newTask)
         {
-            Task task = _dbContext.Tasks.First(u => u.Id == taskId);
+            TaskModel task = _dbContext.Tasks.Include(x => x.SubTasks).First(u => u.Id == newTask.Id);
 
-            task.Title = title ?? task.Title;
-            task.Description = description ?? task.Description;
-            task.Priority = priority ?? task.Priority;
+            if (_dbContext.Tasks.Any(x => x.TaskListId == task.TaskListId && x.Title == newTask.Title && x.Title != task.Title))
+            {
+                throw new Exception();
+            }
+
+            task.Title = newTask.Title ?? task.Title;
+            task.Description = newTask.Description ?? task.Description;
+            task.Priority = newTask.Priority ?? task.Priority;
 
             _dbContext.SaveChanges();
 
             return task;
         }
 
-        public string ToggleCompletion(Guid taskId)
+        public TaskModel ToggleCompletion(TaskModel newTask)
         {
-            Task task = _dbContext.Tasks.First(u => u.Id == taskId);
+            TaskModel task = _dbContext.Tasks.Include(x => x.SubTasks).First(u => u.Id == newTask.Id);
 
             task.Completed = !task.Completed;
 
             _dbContext.SaveChanges();
-            return "Task completion toggled";
+            return task;
         }
 
-        public string UpdateSort(Guid taskId, SortSubTasks sortBy)
+        public TaskModel UpdateSort(TaskModel newTask)
         {
-            Task task = _dbContext.Tasks.First(u => u.Id == taskId);
+            TaskModel task = _dbContext.Tasks.Include(x => x.SubTasks).First(u => u.Id == newTask.Id);
 
-            task.SortSubTasks = sortBy;
+            task.SortSubTasks = newTask.SortSubTasks;
             _dbContext.SaveChanges();
 
-            return "'Sort by' type was updated";
+            return task;
         }
 
-        public List<Task> SortBy()
+        public List<TaskModel> SortBy()
         {
-            Guid listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+            Guid listId = CurrentActive.Id["ListId"];
             SortTasks sortBy = _dbContext.TaskLists.First(u => u.Id == listId).SortTasks;
-            List<Task> currentListTasks = _dbContext.Tasks.Where(x => x.TaskListId == listId).ToList();
+            List<TaskModel> currentListTasks = _dbContext.Tasks.Include(x => x.SubTasks).Where(x => x.TaskListId == listId).ToList();
 
             return sortBy switch
             {
@@ -102,7 +113,7 @@ namespace ToDoListWithUsersApi.Services
                 SortTasks.Old => currentListTasks.OrderBy(t => t.DateCreated).ToList(),
                 SortTasks.Priority => currentListTasks.OrderByDescending(t => t.Priority).ToList(),
                 SortTasks.Completion => currentListTasks.OrderByDescending(t => t.Completed).ToList(),
-                _ => new List<Task>(),
+                _ => new List<TaskModel>(),
             };
         }
     }

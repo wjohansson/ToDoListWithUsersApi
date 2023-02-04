@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using DataLibrary.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using ToDoListWithUsersApi.Controllers;
 using ToDoListWithUsersApi.Services;
 
 namespace ToDoListWithUsersApi.Security
@@ -45,7 +44,7 @@ namespace ToDoListWithUsersApi.Security
                 username = decoded[0];
                 var password = decoded[1];
 
-                User? user = await _userService.AuthenticateUser(username, password);
+                UserModel? user = _userService.AuthenticateUser(username, password);
 
                 if (user == null)
                 {

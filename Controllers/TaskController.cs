@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DataLibrary;
+using DataLibrary.Enums;
+using DataLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Security.Claims;
 using ToDoListWithUsersApi.Services;
-using Task = ToDoListWithUsersApi.Models.Task;
 
 namespace ToDoListWithUsersApi.Controllers
 {
@@ -28,129 +28,107 @@ namespace ToDoListWithUsersApi.Controllers
         [HttpGet("CurrentListTasks")]
         public IActionResult GetCurrentListTasks()
         {
-            Guid listId;
-            
             try
             {
-                listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+                return Ok(_taskService.GetCurrentListTasks());
 
             }
             catch (Exception)
             {
-                return BadRequest("Not inside of a list.");
+                return BadRequest("Something went wrong with getting the tasks");
             }
-
-            return Ok(_taskService.GetCurrentListTasks(listId));
         }
 
-        [HttpGet("{taskId}")]
-        public IActionResult GetTask(Guid taskId)
+        [HttpPut("Task")]
+        public IActionResult GetTask()
         {
-            return Ok(_taskService.GetTask(taskId));
+
+            try
+            {
+                Guid taskId = Request.ReadFromJsonAsync<Guid>().Result;
+                return Ok(_taskService.GetTask(taskId));
+            }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong with getting the task");
+            }
+
         }
 
         [HttpPost("Create")]
-        public IActionResult CreateTask(string title, string description, Priority priority)
+        public IActionResult CreateTask()
         {
-            Guid listId;
-
             try
             {
-                listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+                TaskModel? task = Request.ReadFromJsonAsync<TaskModel>().Result;
+                Guid listId;
+                listId = CurrentActive.Id["ListId"];
+                return Ok(_taskService.CreateTask(listId, task));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a list.");
+                return BadRequest("Something went wrong with creating the task");
             }
-            return Ok(_taskService.CreateTask(listId, title, description, priority));
         }
 
         [HttpPut("Edit")]
-        public IActionResult EditTask(Guid taskId, string? title, string? description, Priority priority)
+        public IActionResult EditCurrentTask()
         {
-
-            return Ok(_taskService.EditTask(taskId, title, description, priority));
-        }
-
-        [HttpPut("{taskId}/Edit")]
-        public IActionResult EditCurrentTask(string? title, string? description, Priority priority)
-        {
-            Guid taskId;
-
             try
             {
-                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+                TaskModel? task = Request.ReadFromJsonAsync<TaskModel>().Result;
+                return Ok(_taskService.EditTask(task));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a task.");
+                return BadRequest("Something went wrong with editing the task");
             }
-
-            return Ok(_taskService.EditTask(taskId, title, description, priority));
         }
 
         [HttpPut("ToggleCompletion")]
-        public IActionResult ToggleCompletion(Guid taskId)
-        {
-
-            return Ok(_taskService.ToggleCompletion(taskId));
-        }
-
-        [HttpPut("{taskId}/ToggleCompletion")]
         public IActionResult ToggleCurrentCompletion()
         {
-            Guid taskId;
-
             try
             {
-                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+                TaskModel? task = Request.ReadFromJsonAsync<TaskModel>().Result;
+                return Ok(_taskService.ToggleCompletion(task));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a task.");
+                return BadRequest("Something went wrong with updating the completion of the task");
             }
 
-            return Ok(_taskService.ToggleCompletion(taskId));
         }
 
         [HttpPut("SortSubTasksBy")]
-        public IActionResult UpdateSort(SortSubTasks sortBy)
+        public IActionResult UpdateSort()
         {
-            Guid taskId;
+
 
             try
             {
-                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+                TaskModel? task = Request.ReadFromJsonAsync<TaskModel>().Result;
+                return Ok(_taskService.UpdateSort(task));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a task.");
+                return BadRequest("Something went wrong with updating the sort of the task");
             }
 
-            return Ok(_taskService.UpdateSort(taskId, sortBy));
         }
 
-        [HttpDelete("Delete")]
-        public IActionResult DeleteTask(Guid taskId)
-        {
-            return Ok(_taskService.DeleteTask(taskId));
-        }
-
-        [HttpDelete("{taskId}/Delete")]
+        [HttpPut("Delete")]
         public IActionResult DeleteCurrentTask()
         {
-            Guid taskId;
-
             try
             {
-                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+                TaskModel? task = Request.ReadFromJsonAsync<TaskModel>().Result;
+                return Ok(_taskService.DeleteTask(task));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a task.");
+                return BadRequest("Something went wrong with deleting the task");
             }
-
-            return Ok(_taskService.DeleteTask(taskId));
         }
     }
 }

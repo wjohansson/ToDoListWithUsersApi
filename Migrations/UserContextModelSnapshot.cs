@@ -19,7 +19,7 @@ namespace ToDoListWithUsersApi.Migrations
                 .HasAnnotation("ProductVersion", "6.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.Category", b =>
+            modelBuilder.Entity("DataLibrary.Models.CategoryModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -45,7 +45,7 @@ namespace ToDoListWithUsersApi.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.SubTask", b =>
+            modelBuilder.Entity("DataLibrary.Models.SubTaskModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -72,7 +72,38 @@ namespace ToDoListWithUsersApi.Migrations
                     b.ToTable("SubTasks", (string)null);
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.Task", b =>
+            modelBuilder.Entity("DataLibrary.Models.TaskListModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("SortTasks")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TaskLists", (string)null);
+                });
+
+            modelBuilder.Entity("DataLibrary.Models.TaskModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -108,38 +139,7 @@ namespace ToDoListWithUsersApi.Migrations
                     b.ToTable("Tasks", (string)null);
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.TaskList", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("CategoryId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("SortTasks")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TaskLists", (string)null);
-                });
-
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.User", b =>
+            modelBuilder.Entity("DataLibrary.Models.UserModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -149,8 +149,13 @@ namespace ToDoListWithUsersApi.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Age")
+                    b.Property<int?>("Age")
+                        .IsRequired()
                         .HasColumnType("int");
+
+                    b.Property<string>("ConfirmPassword")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime(6)");
@@ -171,6 +176,10 @@ namespace ToDoListWithUsersApi.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("OldPassword")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -179,7 +188,7 @@ namespace ToDoListWithUsersApi.Migrations
                         .IsRequired()
                         .HasColumnType("longblob");
 
-                    b.Property<int>("Permission")
+                    b.Property<int?>("Permission")
                         .HasColumnType("int");
 
                     b.Property<int>("SortCategories")
@@ -197,62 +206,62 @@ namespace ToDoListWithUsersApi.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.Category", b =>
+            modelBuilder.Entity("DataLibrary.Models.CategoryModel", b =>
                 {
-                    b.HasOne("ToDoListWithUsersApi.Models.User", null)
+                    b.HasOne("DataLibrary.Models.UserModel", null)
                         .WithMany("Categories")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.SubTask", b =>
+            modelBuilder.Entity("DataLibrary.Models.SubTaskModel", b =>
                 {
-                    b.HasOne("ToDoListWithUsersApi.Models.Task", null)
+                    b.HasOne("DataLibrary.Models.TaskModel", null)
                         .WithMany("SubTasks")
                         .HasForeignKey("TaskId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.Task", b =>
+            modelBuilder.Entity("DataLibrary.Models.TaskListModel", b =>
                 {
-                    b.HasOne("ToDoListWithUsersApi.Models.TaskList", null)
-                        .WithMany("Tasks")
-                        .HasForeignKey("TaskListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.TaskList", b =>
-                {
-                    b.HasOne("ToDoListWithUsersApi.Models.Category", null)
+                    b.HasOne("DataLibrary.Models.CategoryModel", null)
                         .WithMany("TaskLists")
                         .HasForeignKey("CategoryId");
 
-                    b.HasOne("ToDoListWithUsersApi.Models.User", null)
+                    b.HasOne("DataLibrary.Models.UserModel", null)
                         .WithMany("TaskLists")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.Category", b =>
+            modelBuilder.Entity("DataLibrary.Models.TaskModel", b =>
+                {
+                    b.HasOne("DataLibrary.Models.TaskListModel", null)
+                        .WithMany("Tasks")
+                        .HasForeignKey("TaskListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DataLibrary.Models.CategoryModel", b =>
                 {
                     b.Navigation("TaskLists");
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.Task", b =>
-                {
-                    b.Navigation("SubTasks");
-                });
-
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.TaskList", b =>
+            modelBuilder.Entity("DataLibrary.Models.TaskListModel", b =>
                 {
                     b.Navigation("Tasks");
                 });
 
-            modelBuilder.Entity("ToDoListWithUsersApi.Models.User", b =>
+            modelBuilder.Entity("DataLibrary.Models.TaskModel", b =>
+                {
+                    b.Navigation("SubTasks");
+                });
+
+            modelBuilder.Entity("DataLibrary.Models.UserModel", b =>
                 {
                     b.Navigation("Categories");
 

@@ -1,25 +1,27 @@
-﻿using Task = ToDoListWithUsersApi.Models.Task;
+﻿
+using DataLibrary.Enums;
+using DataLibrary.Models;
 
 namespace ToDoListWithUsersApi.Services
 {
     public interface ITaskService
     {
-        List<Task> GetTasks();
+        List<TaskModel> GetTasks();
 
-        List<Task> GetCurrentListTasks(Guid listId);
+        List<TaskModel> GetCurrentListTasks();
 
-        Task GetTask(Guid taskId);
+        TaskModel GetTask(Guid taskId);
 
-        Task CreateTask(Guid listId, string title, string description, Priority priority);
+        TaskModel CreateTask(Guid listId, TaskModel task);
 
-        Task EditTask(Guid taskId, string? title, string? description, Priority? priority);
+        TaskModel EditTask(TaskModel task);
 
-        string DeleteTask(Guid taskId);
+        TaskModel DeleteTask(TaskModel task);
 
-        string ToggleCompletion(Guid taskId);
+        TaskModel ToggleCompletion(TaskModel newTask);
 
-        string UpdateSort(Guid taskId, SortSubTasks sortLists);
+        TaskModel UpdateSort(TaskModel task);
 
-        List<Task> SortBy();
+        List<TaskModel> SortBy();
     }
 }

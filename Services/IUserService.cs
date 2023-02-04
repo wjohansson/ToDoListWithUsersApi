@@ -1,27 +1,33 @@
-﻿namespace ToDoListWithUsersApi.Services
+﻿using DataLibrary.Enums;
+using DataLibrary.Models;
+namespace ToDoListWithUsersApi.Services
 {
     public interface IUserService
     {
-        List<User> GetAllUsers();
+        List<UserModel> GetAllUsers();
 
-        User GetUser(Guid userId);
+        UserModel GetUser(Guid userId);
 
-        User CreateUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel? permission);
+        UserModel CreateUser(UserModel user);
 
-        User EditUser(Guid userId, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel? permission);
+        UserModel EditUser(UserModel newUser);
 
-        User PromoteUser(Guid userId);
+        UserModel PromoteUser(UserModel user);
 
-        User DemoteUser(Guid userId);
+        UserModel DemoteUser(UserModel user);
 
-        string DeleteUser(Guid userId);
+        UserModel ChangePassword(UserModel user);
 
-        Task<string> Login(string? username, string? password);
+        UserModel ChangeOtherPassword(UserModel user);
 
-        Task<User?> AuthenticateUser(string username, string password);
+        UserModel DeleteUser(UserModel user);
 
-        string Logout();
+        UserModel Login(UserModel user);
 
-        string UpdateSort(Guid userId, SortLists sortLists);
+        UserModel? AuthenticateUser(string username, string password);
+
+        UserModel Logout();
+
+        UserModel UpdateSort(UserModel user);
     }
 }

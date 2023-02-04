@@ -1,17 +1,19 @@
-﻿namespace ToDoListWithUsersApi.Services
+﻿using DataLibrary.Models;
+
+namespace ToDoListWithUsersApi.Services
 {
     public interface ICategoryService
     {
-        List<Category> GetCategories();
+        List<CategoryModel> GetCategories();
 
-        List<Category> GetCurrentUserCategories(Guid userId);
+        List<CategoryModel> GetCurrentUserCategories(Guid userId);
 
-        Category GetCategory(Guid categoryId);
+        CategoryModel GetCategory(CategoryModel category);
 
-        Category CreateCategory(Guid userId, string title);
+        CategoryModel CreateCategory(Guid userId, CategoryModel category);
 
-        Category EditCategory(Guid categoryId, string? title);
+        CategoryModel EditCategory(CategoryModel newCategory);
 
-        string DeleteCategory(Guid categoryId);
+        CategoryModel DeleteCategory(CategoryModel category);
     }
 }

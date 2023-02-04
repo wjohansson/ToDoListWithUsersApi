@@ -1,12 +1,18 @@
 ﻿
+using DataLibrary;
+using DataLibrary.Enums;
+using DataLibrary.Models;
+using FluentValidation.Validators;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using ToDoListWithUsersApi.Models;
+using System.Text.Json;
 
 namespace ToDoListWithUsersApi.Services
 {
@@ -19,72 +25,79 @@ namespace ToDoListWithUsersApi.Services
             _dbContext = context;
         }
 
-        public List<User> GetAllUsers()
+        public List<UserModel> GetAllUsers()
         {
-            return _dbContext.Users.ToList();
+            var users = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).ToList();
+            return users;
         }
 
-        public User GetUser(Guid userId)
+        public UserModel GetUser(Guid userId)
         {
-            return _dbContext.Users.First(x => x.Id == userId);
+            var user = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(x => x.Id == userId);
+            return user;
         }
 
-        public User CreateUser(string username, string password, string firstName, string lastName, string email, int age, string gender, string adress, PermissionLevel? permission)
+        public UserModel CreateUser(UserModel user)
         {
-            permission ??= PermissionLevel.User;
-
-            User user = new()
+            if (_dbContext.Users.Any(x => x.Username == user.Username))
             {
-                Username = username,
-                Password = HashAndSaltPassword(password, out var salt),
-                PasswordSalt = salt,
-                FirstName = firstName,
-                LastName = lastName,
-                Email = email,
-                Age = age,
-                Gender = gender,
-                Adress = adress,
-                Permission = (PermissionLevel) permission,
-            };
+                throw new DuplicateNameException("Username already exists");
+            }
+
+            user.Id = Guid.NewGuid();
+            user.Password = HashAndSaltPassword(user.Password, out var salt);
+            user.OldPassword = "";
+            user.ConfirmPassword = "";
+            user.PasswordSalt = salt;
+            user.Permission ??= PermissionLevel.User;
 
             _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
 
-            return user;
-        }
-
-        public User EditUser(Guid userId, string? username, string? password, string? firstName, string? lastName, string? email, int? age, string? gender, string? adress, PermissionLevel? permission)
-        {
-            User user = _dbContext.Users.First(u => u.Id == userId);
-
-            user.Username = username ?? user.Username;
-
-            string? newPassword = null;
-            byte[]? newSalt = null;
-            if (password != null)
+            CategoryModel standardCategory = new()
             {
-                newPassword = HashAndSaltPassword(password, out var salt);
-                newSalt = salt;
-            }
-            user.Password = newPassword ?? user.Password;
-            user.PasswordSalt = newSalt ?? user.PasswordSalt;
-            user.FirstName = firstName ?? user.FirstName;
-            user.LastName = lastName ?? user.LastName;
-            user.Email = email ?? user.Email;
-            user.Age = age ?? user.Age;
-            user.Gender = gender ?? user.Gender;
-            user.Adress = adress ?? user.Adress;
-            user.Permission = permission ?? user.Permission;
+                Title = "No category",
+                UserId = user.Id
+            };
+
+            _dbContext.Categories.Add(standardCategory);
 
             _dbContext.SaveChanges();
 
             return user;
         }
 
-        public User PromoteUser(Guid userId)
+        public UserModel EditUser(UserModel newUser)
         {
-            User user = _dbContext.Users.First(u => u.Id == userId);
-            User currentUserLoggedIn = _dbContext.Users.First(u => u.Id == Guid.Parse(CurrentRecord.Record["UserId"]));
+            UserModel user = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(u => u.Id == CurrentActive.Id["UserId"]);
+        
+            if (_dbContext.Users.Any(x => x.Username == newUser.Username && x.Username != user.Username))
+            {
+                throw new DuplicateNameException("Username already exists");
+            }
+            else if (user.Permission == PermissionLevel.System)
+            {
+                throw new InvalidOperationException("Can not change system user");
+            }
+
+            user.Username = newUser.Username ?? user.Username;
+
+            user.FirstName = newUser.FirstName ?? user.FirstName;
+            user.LastName = newUser.LastName ?? user.LastName;
+            user.Email = newUser.Email ?? user.Email;
+            user.Age = newUser.Age ?? user.Age;
+            user.Gender = newUser.Gender ?? user.Gender;
+            user.Adress = newUser.Adress ?? user.Adress;
+            user.Permission = newUser.Permission ?? user.Permission;
+
+            _dbContext.SaveChanges();
+
+            return user;
+        }
+
+        public UserModel PromoteUser(UserModel newUser)
+        {
+            UserModel user = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(u => u.Id == newUser.Id);
+            UserModel currentUserLoggedIn = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(u => u.Id == CurrentActive.Id["UserId"]);
 
             switch (user.Permission)
             {
@@ -106,10 +119,10 @@ namespace ToDoListWithUsersApi.Services
             return user;
         }
 
-        public User DemoteUser(Guid userId)
+        public UserModel DemoteUser(UserModel newUser)
         {
-            User user = _dbContext.Users.First(u => u.Id == userId);
-            User currentUserLoggedIn = _dbContext.Users.First(u => u.Id == Guid.Parse(CurrentRecord.Record["UserId"]));
+            UserModel user = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(u => u.Id == newUser.Id);
+            UserModel currentUserLoggedIn = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(u => u.Id == CurrentActive.Id["UserId"]);
 
             switch (user.Permission)
             {
@@ -138,53 +151,93 @@ namespace ToDoListWithUsersApi.Services
             return user;
         }
 
-        public string DeleteUser(Guid userId)
+        public UserModel ChangePassword(UserModel user)
         {
-            User user = _dbContext.Users.First(u => u.Id == userId);
+            UserModel? oldUser = AuthenticateUser(user.Username, user.OldPassword);
+            
+            if (oldUser == null)
+            {
+                throw new UnauthorizedAccessException("Incorrect password");
+            }
+            else if (oldUser.Permission == PermissionLevel.System)
+            {
+                throw new InvalidOperationException("Can not change system user");
+            }
 
-            _dbContext.Users.Remove(user);
+            oldUser.Password = HashAndSaltPassword(user.Password, out var salt);
+            oldUser.PasswordSalt = salt;
+            oldUser.ConfirmPassword = "";
+
             _dbContext.SaveChanges();
 
-            return "User was deleted";
+            return oldUser;
         }
 
-        public async Task<string> Login(string? username, string? password)
+        public UserModel ChangeOtherPassword(UserModel user)
         {
-            if (username == null || password == null)
+            UserModel? oldUser = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(x => x.Id == user.Id);
+
+            if (user.ConfirmPassword != user.Password)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Password do not match");
+            }
+            else if (oldUser.Permission == PermissionLevel.System)
+            {
+                throw new InvalidOperationException("Can not change system user");
             }
 
-            User? user = await AuthenticateUser(username, password);
+            oldUser.Password = HashAndSaltPassword(user.Password, out var salt);
+            oldUser.PasswordSalt = salt;
+            oldUser.ConfirmPassword = "";
 
-            if (user == null)
-            {
-                throw new UnauthorizedAccessException();
-            }
 
-            CurrentRecord.Record["UserId"] = user.Id.ToString();
+            _dbContext.SaveChanges();
 
-            //var userId = user.Id;
-
-            //var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("thisisasecretkey@123"));
-
-            //var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-
-            var jwtSecurityToken = new JwtSecurityToken(
-                expires: DateTime.Now.AddMinutes(60)
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+            return oldUser;
         }
 
-        public async Task<User?> AuthenticateUser(string username, string password)
+        public UserModel DeleteUser(UserModel user)
         {
-            User user;
+            UserModel oldUser = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(u => u.Id == user.Id);
+
+            if (oldUser.Permission== PermissionLevel.System)
+            {
+                throw new UnauthorizedAccessException("Can not delete system user");
+            }
+
+            _dbContext.Users.Remove(oldUser);
+            _dbContext.SaveChanges();
+
+            return oldUser;
+        }
+
+        public UserModel Login(UserModel user)
+        {
+            if (user.Username == null || user.Password == null)
+            {
+                throw new InvalidOperationException("Username and password is required");
+            }
+
+            var checkUser = AuthenticateUser(user.Username, user.Password);
+
+            if (checkUser == null)
+            {
+                throw new UnauthorizedAccessException("Incorrect username or password");
+            }
+
+            CurrentActive.Id["UserId"] = checkUser.Id;
+
+            return user;
+        }
+
+        public UserModel? AuthenticateUser(string username, string password)
+        {
+            UserModel user;
             try
             {
-                user = _dbContext.Users.Single(x => x.Username == username);
+                user = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).Single(x => x.Username == username);
 
-                if (!VerifyPassword(password, user.Password, user.PasswordSalt))
+                if (!VerifyPassword(password, user.Password, user.PasswordSalt) && password != user.Password)
                 {
                     throw new UnauthorizedAccessException();
                 }
@@ -193,8 +246,6 @@ namespace ToDoListWithUsersApi.Services
             {
                 return null;
             }
-
-            
 
             return user;
         }
@@ -227,21 +278,21 @@ namespace ToDoListWithUsersApi.Services
             return hashToCompare.SequenceEqual(Convert.FromHexString(hash));
         }
 
-        public string Logout()
+        public UserModel Logout()
         {
-            CurrentRecord.Record.Clear();
+            CurrentActive.Id.Clear();
 
-            return "Logged out.";
+            return new UserModel();
         }
 
-        public string UpdateSort(Guid userId, SortLists sortBy)
+        public UserModel UpdateSort(UserModel newUser)
         {
-            User user = _dbContext.Users.First(u => u.Id == userId);
+            UserModel user = _dbContext.Users.Include(x => x.TaskLists).Include(x => x.Categories).First(u => u.Id == newUser.Id);
 
-            user.SortLists = sortBy;
+            user.SortLists = newUser.SortLists;
             _dbContext.SaveChanges();
 
-            return "'Sort by' type was updated";
+            return user;
         }
     }
 }

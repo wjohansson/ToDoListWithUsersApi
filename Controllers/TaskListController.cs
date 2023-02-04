@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DataLibrary;
+using DataLibrary.Enums;
+using DataLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using ToDoListWithUsersApi.Models;
 using ToDoListWithUsersApi.Services;
 
 namespace ToDoListWithUsersApi.Controllers
@@ -27,122 +28,100 @@ namespace ToDoListWithUsersApi.Controllers
         [HttpGet("YourLists")]
         public IActionResult GetCurrentUserLists()
         {
-            Guid userId;
-
             try
             {
-                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
+            return Ok(_taskListService.GetCurrentUserLists());
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not logged in.");
+                return BadRequest("Something went wrong with getting the lists");
             }
-
-            return Ok(_taskListService.GetCurrentUserLists(userId));
         }
 
         [HttpGet("ThisCategoryLists")]
         public IActionResult GetCurrentCategoryLists()
         {
-            Guid categoryId;
-
             try
             {
-                categoryId = Guid.Parse(CurrentRecord.Record["CategoryId"]);
+                return Ok(_taskListService.GetCurrentCategoryLists());
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a category.");
+                return BadRequest("Something went wrong with getting the lists");
             }
-
-            return Ok(_taskListService.GetCurrentCategoryLists(categoryId));
         }
 
-        [HttpGet("{listId}")]
-        public IActionResult GetList(Guid listId)
+        [HttpPut("List")]
+        public IActionResult GetList()
         {
-            return Ok(_taskListService.GetList(listId));
+            try
+            {
+                Guid listId = Request.ReadFromJsonAsync<Guid>().Result;
+                return Ok(_taskListService.GetList(listId));
+            }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong with getting the list");
+            }
+
         }
 
         [HttpPost("Create")]
-        public IActionResult CreateList(string title, Guid? categoryId)
+        public IActionResult CreateList()
         {
-            Guid userId;
-
             try
             {
-                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
+                Guid userId = CurrentActive.Id["UserId"];
+                TaskListModel? list = Request.ReadFromJsonAsync<TaskListModel>().Result;
+                return Ok(_taskListService.CreateList(userId, list));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not logged in.");
+                return BadRequest("Something went wrong with creating the list");
             }
-
-            return Ok(_taskListService.CreateList(userId, title, categoryId));
         }
 
         [HttpPut("Edit")]
-        public IActionResult EditList(Guid listId, string? title, Guid? categoryId)
+        public IActionResult EditCurrentList()
         {
-            return Ok(_taskListService.EditList(listId, title, categoryId));
-        }
-
-        [HttpPut("{listId}/Edit")]
-        public IActionResult EditCurrentList(string? title, Guid? categoryId)
-        {
-            Guid listId;
-
             try
             {
-                listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+                TaskListModel? list = Request.ReadFromJsonAsync<TaskListModel>().Result;
+                return Ok(_taskListService.EditList(list));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a list.");
+                return BadRequest("Something went wrong with editing the list");
             }
-
-            return Ok(_taskListService.EditList(listId, title, categoryId));
         }
 
         [HttpPut("SortTasksBy")]
-        public IActionResult UpdateSort(SortTasks sortBy)
+        public IActionResult UpdateSort()
         {
-            Guid listId;
-
             try
             {
-                listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+                TaskListModel? list = Request.ReadFromJsonAsync<TaskListModel>().Result;
+                return Ok(_taskListService.UpdateSort(list));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a list.");
+                return BadRequest("Something went wrong with updating the sort of the list");
             }
 
-            return Ok(_taskListService.UpdateSort(listId, sortBy));
         }
 
-        [HttpDelete("Delete")]
-        public IActionResult DeleteList(Guid listId)
-        {
-            return Ok(_taskListService.DeleteList(listId));
-        }
-
-
-        [HttpDelete("{listId}/Delete")]
+        [HttpPut("Delete")]
         public IActionResult DeleteCurrentList()
         {
-            Guid listId;
-
             try
             {
-                listId = Guid.Parse(CurrentRecord.Record["ListId"]);
+                TaskListModel? list = Request.ReadFromJsonAsync<TaskListModel>().Result;
+                return Ok(_taskListService.DeleteList(list));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not logged in.");
+                return BadRequest("Something went wrong with deleting the list");
             }
-
-            return Ok(_taskListService.DeleteList(listId));
         }
     }
 }

@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ToDoListWithUsersApi;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using ToDoListWithUsersApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using DataLibrary;
+using DataLibrary.Models;
+using System.Security.Claims;
 
 namespace ToDoListWithUsersApi.Controllers
 {
@@ -29,87 +28,87 @@ namespace ToDoListWithUsersApi.Controllers
         [HttpGet("CurrentUserCategories")]
         public IActionResult GetCurrentUserCategories()
         {
-            Guid userId;
-
             try
             {
-                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                Guid userId = Guid.Empty;
+                if (identity != null)
+                {
+                    IEnumerable<Claim> claims = identity.Claims;
+                    userId = Guid.Parse(claims.First(x => x.Type == "UserId").Value);
+                }
+
+                return Ok(_categoryService.GetCurrentUserCategories(userId));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not logged in.");
+                return BadRequest("Something went wrong with getting the categories");
             }
-
-            return Ok(_categoryService.GetCurrentUserCategories(userId));
         }
 
-        [HttpGet("{categoryId}")]
-        public IActionResult GetCategory(Guid categoryId)
+        [HttpPut("Category")]
+        public IActionResult GetCategory()
         {
-            return Ok(_categoryService.GetCategory(categoryId));
-        }
+            try
+            {
+                CategoryModel? category = Request.ReadFromJsonAsync<CategoryModel>().Result;
+
+                return Ok(_categoryService.GetCategory(category));
+            }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong with getting the category");
+            }
+            }
 
         [HttpPost("Create")]
-        public IActionResult CreateCategory(string title)
+        public IActionResult CreateCategory()
         {
-            Guid userId;
-
             try
             {
-                userId = Guid.Parse(CurrentRecord.Record["UserId"]);
-            }
-            catch (FormatException)
-            {
-                return BadRequest("Not logged in.");
-            }
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                Guid userId = Guid.Empty;
+                if (identity != null)
+                {
+                    IEnumerable<Claim> claims = identity.Claims;
+                    userId = Guid.Parse(claims.First(x => x.Type == "UserId").Value);
+                }
 
-            return Ok(_categoryService.CreateCategory(userId, title));
+                CategoryModel? category = Request.ReadFromJsonAsync<CategoryModel>().Result;
+                return Ok(_categoryService.CreateCategory(userId, category));
+            }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong with creating the category");
+            }
         }
 
         [HttpPut("Edit")]
-        public IActionResult EditCategory(Guid categoryId, string? title)
+        public IActionResult EditCurrentCategory()
         {
-            return Ok(_categoryService.EditCategory(categoryId, title));
-        }
-
-        [HttpPut("{categoryId}/Edit")]
-        public IActionResult EditCurrentCategory(string? title)
-        {
-            Guid categoryId;
-
             try
             {
-                categoryId = Guid.Parse(CurrentRecord.Record["CategoryId"]);
+                CategoryModel? category = Request.ReadFromJsonAsync<CategoryModel>().Result;
+                return Ok(_categoryService.EditCategory(category));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not logged in.");
+                return BadRequest("Something went wrong with editing the category");
             }
-
-            return Ok(_categoryService.EditCategory(categoryId, title));
         }
 
-        [HttpDelete("Delete")]
-        public IActionResult DeleteCategory(Guid categoryId)
-        {
-            return Ok(_categoryService.DeleteCategory(categoryId));
-        }
-
-        [HttpDelete("{categoryId}/Delete")]
+        [HttpPut("Delete")]
         public IActionResult DeleteCurrentCategory()
         {
-            Guid categoryId;
-
             try
             {
-                categoryId = Guid.Parse(CurrentRecord.Record["CategoryId"]);
+                CategoryModel? category = Request.ReadFromJsonAsync<CategoryModel>().Result;
+                return Ok(_categoryService.DeleteCategory(category));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not logged in.");
+                return BadRequest("Something went wrong with deleting the category");
             }
-
-            return Ok(_categoryService.DeleteCategory(categoryId));
         }
     }
 }

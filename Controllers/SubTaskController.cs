@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ToDoListWithUsersApi;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using ToDoListWithUsersApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using DataLibrary;
+using DataLibrary.Models;
 
 namespace ToDoListWithUsersApi.Controllers
 {
@@ -29,88 +27,71 @@ namespace ToDoListWithUsersApi.Controllers
         [HttpGet("CurrentTaskSubTasks")]
         public IActionResult GetCurrentTaskSubTasks()
         {
-            Guid taskId;
-
             try
             {
-                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+                return Ok(_taskService.GetCurrentTaskSubTasks());
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a task.");
+                return BadRequest("Something went wrong with getting the sub tasks");
             }
-
-            return Ok(_taskService.GetCurrentTaskSubTasks(taskId));
         }
 
-        [HttpGet("{subTaskId}")]
-        public IActionResult GetSingleSubTask(Guid subTaskId)
+        [HttpPut("SubTask")]
+        public IActionResult GetSubTask()
         {
-            return Ok(_taskService.GetSingleSubTask(subTaskId));
-        }
-
-        [HttpPost("Add")]
-        public IActionResult AddSubTask(string title, string description)
-        {
-            Guid taskId;
-
             try
             {
-                taskId = Guid.Parse(CurrentRecord.Record["TaskId"]);
+                Guid subTaskId = Request.ReadFromJsonAsync<Guid>().Result;
+                return Ok(_taskService.GetSubTask(subTaskId));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a task.");
+                return BadRequest("Something went wrong with getting the sub task");
             }
+        }
 
-            return Ok(_taskService.CreateSubTask(taskId, title, description));
+        [HttpPost("Create")]
+        public IActionResult CreateSubTask()
+        {
+            try
+            {
+                Guid taskId = CurrentActive.Id["TaskId"];
+                SubTaskModel? subTask = Request.ReadFromJsonAsync<SubTaskModel>().Result;
+                return Ok(_taskService.CreateSubTask(taskId, subTask));
+            }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong with creating the sub tasks");
+            }
         }
 
         [HttpPut("Edit")]
-        public IActionResult UpdateSubTask(Guid subTaskId, string? title, string? description)
+        public IActionResult EditSubTask()
         {
-            return Ok(_taskService.UpdateSubTask(subTaskId, title, description));
-        }
-
-        [HttpPut("{subTaskId}/Edit")]
-        public IActionResult UpdateCurrentSubTask(string? title, string? description)
-        {
-            Guid subTaskId;
-
             try
             {
-                subTaskId = Guid.Parse(CurrentRecord.Record["SubTaskId"]);
+                SubTaskModel? subTask = Request.ReadFromJsonAsync<SubTaskModel>().Result;
+                return Ok(_taskService.EditSubTask(subTask));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a sub task.");
+                return BadRequest("Something went wrong with editing the sub task");
             }
-
-            return Ok(_taskService.UpdateSubTask(subTaskId, title, description));
         }
 
-        [HttpDelete("Delete")]
-        public IActionResult DeleteSubTask(Guid subTaskId)
-        {
-
-            return Ok(_taskService.DeleteSubTask(subTaskId));
-        }
-
-        [HttpDelete("{subTaskId}/Delete")]
+        [HttpPut("Delete")]
         public IActionResult DeleteCurrentSubTask()
         {
-            Guid subTaskId;
-
             try
             {
-                subTaskId = Guid.Parse(CurrentRecord.Record["SubTaskId"]);
+                SubTaskModel? subTask = Request.ReadFromJsonAsync<SubTaskModel>().Result;
+                return Ok(_taskService.DeleteSubTask(subTask));
             }
-            catch (FormatException)
+            catch (Exception)
             {
-                return BadRequest("Not inside of a sub task.");
+                return BadRequest("Something went wrong with deleting the sub task");
             }
-
-            return Ok(_taskService.DeleteSubTask(subTaskId));
         }
     }
 }
