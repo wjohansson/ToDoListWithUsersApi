@@ -10,7 +10,7 @@ namespace ToDoListWithUsersApi.Services
 
         SubTaskModel GetSubTask(Guid subTaskId);
 
-        SubTaskModel CreateSubTask(Guid taskId, SubTaskModel subTask);
+        SubTaskModel CreateSubTask(SubTaskModel subTask);
 
         SubTaskModel EditSubTask(SubTaskModel newSubTask);
 

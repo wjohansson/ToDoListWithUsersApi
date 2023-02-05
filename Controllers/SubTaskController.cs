@@ -56,9 +56,8 @@ namespace ToDoListWithUsersApi.Controllers
         {
             try
             {
-                Guid taskId = CurrentActive.Id["TaskId"];
                 SubTaskModel? subTask = Request.ReadFromJsonAsync<SubTaskModel>().Result;
-                return Ok(_taskService.CreateSubTask(taskId, subTask));
+                return Ok(_taskService.CreateSubTask(subTask));
             }
             catch (Exception)
             {

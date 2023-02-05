@@ -15,14 +15,12 @@ namespace ToDoListWithUsersApi.Services
             _dbContext = context;
         }
 
-        public SubTaskModel CreateSubTask(Guid taskId, SubTaskModel subTask)
+        public SubTaskModel CreateSubTask(SubTaskModel subTask)
         {
-            if (_dbContext.SubTasks.Any(x => x.Title == subTask.Title && x.TaskId == taskId))
+            if (_dbContext.SubTasks.Any(x => x.Title == subTask.Title && x.TaskId == subTask.TaskId))
             {
                 throw new Exception();
             }
-
-            subTask.TaskId = taskId;
 
             _dbContext.SubTasks.Add(subTask);
             _dbContext.SaveChanges();
