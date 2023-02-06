@@ -20,13 +20,13 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpGet("AllTasks")]
-        public IActionResult GetTasks()
+        public async Task<ActionResult<List<TaskModel>>> GetTasks()
         {
             return Ok(_taskService.GetTasks());
         }
 
         [HttpGet("CurrentListTasks")]
-        public IActionResult GetCurrentListTasks()
+        public async Task<ActionResult<List<TaskModel>>> GetCurrentListTasks()
         {
             try
             {
@@ -40,7 +40,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Task")]
-        public IActionResult GetTask()
+        public async Task<ActionResult<TaskModel>> GetTask()
         {
 
             try
@@ -56,7 +56,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPost("Create")]
-        public IActionResult CreateTask()
+        public async Task<ActionResult<TaskModel>> CreateTask()
         {
             try
             {
@@ -72,7 +72,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Edit")]
-        public IActionResult EditCurrentTask()
+        public async Task<ActionResult<TaskModel>> EditCurrentTask()
         {
             try
             {
@@ -86,7 +86,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("ToggleCompletion")]
-        public IActionResult ToggleCurrentCompletion()
+        public async Task<ActionResult<TaskModel>> ToggleCurrentCompletion()
         {
             try
             {
@@ -101,7 +101,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("SortSubTasksBy")]
-        public IActionResult UpdateSort()
+        public async Task<ActionResult<TaskModel>> UpdateSort()
         {
 
 
@@ -118,7 +118,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Delete")]
-        public IActionResult DeleteCurrentTask()
+        public async Task<ActionResult<TaskModel>> DeleteCurrentTask()
         {
             try
             {

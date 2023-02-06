@@ -20,13 +20,13 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpGet("AllCategories")]
-        public IActionResult GetCategories()
+        public async Task<ActionResult<List<CategoryModel>>> GetCategories()
         {
             return Ok(_categoryService.GetCategories());
         }
 
         [HttpGet("CurrentUserCategories")]
-        public IActionResult GetCurrentUserCategories()
+        public async Task<ActionResult<List<CategoryModel>>> GetCurrentUserCategories()
         {
             try
             {
@@ -47,7 +47,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Category")]
-        public IActionResult GetCategory()
+        public async Task<ActionResult<CategoryModel>> GetCategory()
         {
             try
             {
@@ -62,7 +62,7 @@ namespace ToDoListWithUsersApi.Controllers
             }
 
         [HttpPost("Create")]
-        public IActionResult CreateCategory()
+        public async Task<ActionResult<CategoryModel>> CreateCategory()
         {
             try
             {
@@ -84,7 +84,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Edit")]
-        public IActionResult EditCurrentCategory()
+        public async Task<ActionResult<CategoryModel>> EditCurrentCategory()
         {
             try
             {
@@ -98,7 +98,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Delete")]
-        public IActionResult DeleteCurrentCategory()
+        public async Task<ActionResult<CategoryModel>> DeleteCurrentCategory()
         {
             try
             {

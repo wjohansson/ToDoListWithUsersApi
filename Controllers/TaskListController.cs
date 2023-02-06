@@ -20,13 +20,13 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpGet("AllLists")]
-        public IActionResult GetLists()
+        public async Task<ActionResult<List<TaskListModel>>> GetLists()
         {
             return Ok(_taskListService.GetAllLists());
         }
 
         [HttpGet("YourLists")]
-        public IActionResult GetCurrentUserLists()
+        public async Task<ActionResult<List<TaskListModel>>> GetCurrentUserLists()
         {
             try
             {
@@ -39,7 +39,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpGet("ThisCategoryLists")]
-        public IActionResult GetCurrentCategoryLists()
+        public async Task<ActionResult<List<TaskListModel>>> GetCurrentCategoryLists()
         {
             try
             {
@@ -52,7 +52,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("List")]
-        public IActionResult GetList()
+        public async Task<ActionResult<TaskListModel>> GetList()
         {
             try
             {
@@ -67,7 +67,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPost("Create")]
-        public IActionResult CreateList()
+        public async Task<ActionResult<TaskListModel>> CreateList()
         {
             try
             {
@@ -82,7 +82,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Edit")]
-        public IActionResult EditCurrentList()
+        public async Task<ActionResult<TaskListModel>> EditCurrentList()
         {
             try
             {
@@ -96,7 +96,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("SortTasksBy")]
-        public IActionResult UpdateSort()
+        public async Task<ActionResult<TaskListModel>> UpdateSort()
         {
             try
             {
@@ -111,7 +111,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Delete")]
-        public IActionResult DeleteCurrentList()
+        public async Task<ActionResult<TaskListModel>> DeleteCurrentList()
         {
             try
             {

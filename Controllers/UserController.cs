@@ -23,14 +23,14 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize(Roles = "System,Admin,Moderator")]
         [HttpGet("AllUsers")]
-        public IActionResult GetUsers()
+        public async Task<ActionResult<List<UserModel>>> GetUsers()
         {
             return Ok(_userService.GetAllUsers());
         }
 
         [Authorize]
         [HttpGet("User")]
-        public IActionResult GetUser()
+        public async Task<ActionResult<UserModel>> GetUser()
         {
             try
             {
@@ -51,7 +51,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPost("Login")]
-        public IActionResult Login()
+        public async Task<ActionResult<List<UserModel>>> Login()
         {
             UserModel? user = Request.ReadFromJsonAsync<UserModel>().Result;
 
@@ -75,7 +75,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize]
         [HttpGet("Logout")]
-        public IActionResult Logout()
+        public async Task<ActionResult<List<UserModel>>> Logout()
         {
             return Ok(_userService.Logout());
         }
@@ -83,7 +83,7 @@ namespace ToDoListWithUsersApi.Controllers
         [Authorize]
         [AllowAnonymous]
         [HttpPost("Create")]
-        public IActionResult CreateUser()
+        public async Task<ActionResult<List<UserModel>>> CreateUser()
         {
             try
             {
@@ -106,7 +106,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize]
         [HttpPut("Edit")]
-        public IActionResult EditUser()
+        public async Task<ActionResult<List<UserModel>>> EditUser()
         {
             try
             {
@@ -129,7 +129,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize(Roles = "System, Admin, Moderator")]
         [HttpPut("Promote")]
-        public IActionResult PromoteAnotherUser()
+        public async Task<ActionResult<List<UserModel>>> PromoteAnotherUser()
         {
             try
             {
@@ -148,7 +148,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize(Roles = "System, Admin, Moderator")]
         [HttpPut("Demote")]
-        public IActionResult DemoteAnotherUser()
+        public async Task<ActionResult<List<UserModel>>> DemoteAnotherUser()
         {
             try
             {
@@ -167,7 +167,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize]
         [HttpPut("ChangePassword")]
-        public IActionResult ChangePassword()
+        public async Task<ActionResult<List<UserModel>>> ChangePassword()
         {
             try
             {
@@ -190,7 +190,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize(Roles = "System, Admin, Moderator")]
         [HttpPut("ChangeOtherPassword")]
-        public IActionResult ChangeOtherPassword()
+        public async Task<ActionResult<List<UserModel>>> ChangeOtherPassword()
         {
             try
             {
@@ -209,7 +209,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize]
         [HttpPut("SortListsBy")]
-        public IActionResult UpdateSort()
+        public async Task<ActionResult<List<UserModel>>> UpdateSort()
         {
             try
             {
@@ -224,7 +224,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize(Roles = "System, Admin, Moderator")]
         [HttpPut("DeleteAnother")]
-        public IActionResult DeleteAnotherUser()
+        public async Task<ActionResult<List<UserModel>>> DeleteAnotherUser()
         {
             try
             {
@@ -244,7 +244,7 @@ namespace ToDoListWithUsersApi.Controllers
 
         [Authorize]
         [HttpPut("Delete")]
-        public IActionResult DeleteUser()
+        public async Task<ActionResult<List<UserModel>>> DeleteUser()
         {
             try
             {

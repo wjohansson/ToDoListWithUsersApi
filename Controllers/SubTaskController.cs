@@ -19,13 +19,13 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpGet("AllSubTasks")]
-        public IActionResult GetAllSubTasks()
+        public async Task<ActionResult<List<SubTaskModel>>> GetAllSubTasks()
         {
             return Ok(_taskService.GetAllSubTasks());
         }
 
         [HttpGet("CurrentTaskSubTasks")]
-        public IActionResult GetCurrentTaskSubTasks()
+        public async Task<ActionResult<List<SubTaskModel>>> GetCurrentTaskSubTasks()
         {
             try
             {
@@ -38,7 +38,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("SubTask")]
-        public IActionResult GetSubTask()
+        public async Task<ActionResult<SubTaskModel>> GetSubTask()
         {
             try
             {
@@ -52,7 +52,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPost("Create")]
-        public IActionResult CreateSubTask()
+        public async Task<ActionResult<SubTaskModel>> CreateSubTask()
         {
             try
             {
@@ -66,7 +66,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Edit")]
-        public IActionResult EditSubTask()
+        public async Task<ActionResult<SubTaskModel>> EditSubTask()
         {
             try
             {
@@ -80,7 +80,7 @@ namespace ToDoListWithUsersApi.Controllers
         }
 
         [HttpPut("Delete")]
-        public IActionResult DeleteCurrentSubTask()
+        public async Task<ActionResult<SubTaskModel>> DeleteCurrentSubTask()
         {
             try
             {
